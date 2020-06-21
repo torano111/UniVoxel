@@ -4,18 +4,25 @@ using UnityEngine;
 
 namespace UniVoxel.Core
 {
-    public class Block : MonoBehaviour
+    public enum BoxFaceSide
     {
-        // Start is called before the first frame update
-        void Start()
-        {
+        Front,
+        Back,
+        Top,
+        Bottom,
+        Right,
+        Left,
+    };
+    
+    public enum BlockType
+    {
+        Grass,
+        Dirt,
+        Stone,
+    }
 
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
+    public class Block
+    {
+        public BlockType BlockType { get; set; }
     }
 }

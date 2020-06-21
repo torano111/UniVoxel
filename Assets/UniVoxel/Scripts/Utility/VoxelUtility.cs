@@ -2,19 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UniVoxel.Core;
 
 namespace UniVoxel.Utility
 {
-    public enum BoxFaceSide
-    {
-        Front,
-        Back,
-        Top,
-        Bottom,
-        Right,
-        Left,
-    };
-
     public static class VoxelUtility
     {
         static readonly int FaceVertexLength = 4;
@@ -97,44 +88,6 @@ namespace UniVoxel.Utility
 
             switch (FaceSide)
             {
-                /*
-                case BoxFaceSide.Front:
-                    vertices[startIndex] = Center + new Vector3(Extent, Extent, Extent);
-                    vertices[startIndex + 1] = Center + new Vector3(Extent, Extent, -Extent);
-                    vertices[startIndex + 2] = Center + new Vector3(Extent, -Extent, Extent);
-                    vertices[startIndex + 3] = Center + new Vector3(Extent, -Extent, -Extent);
-                    break;
-                case BoxFaceSide.Back:
-                    vertices[startIndex] = Center + new Vector3(-Extent, -Extent, Extent);
-                    vertices[startIndex + 1] = Center + new Vector3(-Extent, -Extent, -Extent);
-                    vertices[startIndex + 2] = Center + new Vector3(-Extent, Extent, Extent);
-                    vertices[startIndex + 3] = Center + new Vector3(-Extent, Extent, -Extent);
-                    break;
-                case BoxFaceSide.Up:
-                    vertices[startIndex] = Center + new Vector3(Extent, -Extent, Extent);
-                    vertices[startIndex + 1] = Center + new Vector3(-Extent, -Extent, Extent);
-                    vertices[startIndex + 2] = Center + new Vector3(Extent, Extent, Extent);
-                    vertices[startIndex + 3] = Center + new Vector3(-Extent, Extent, Extent);
-                    break;
-                case BoxFaceSide.Down:
-                    vertices[startIndex] = Center + new Vector3(Extent, Extent, -Extent);
-                    vertices[startIndex + 1] = Center + new Vector3(-Extent, Extent, -Extent);
-                    vertices[startIndex + 2] = Center + new Vector3(Extent, -Extent, -Extent);
-                    vertices[startIndex + 3] = Center + new Vector3(-Extent, -Extent, -Extent);
-                    break;
-                case BoxFaceSide.Right:
-                    vertices[startIndex] = Center + new Vector3(-Extent, Extent, Extent);
-                    vertices[startIndex + 1] = Center + new Vector3(-Extent, Extent, -Extent);
-                    vertices[startIndex + 2] = Center + new Vector3(Extent, Extent, Extent);
-                    vertices[startIndex + 3] = Center + new Vector3(Extent, Extent, -Extent);
-                    break;
-                case BoxFaceSide.Left:
-                    vertices[startIndex] = Center + new Vector3(Extent, -Extent, Extent);
-                    vertices[startIndex + 1] = Center + new Vector3(Extent, -Extent, -Extent);
-                    vertices[startIndex + 2] = Center + new Vector3(-Extent, -Extent, Extent);
-                    vertices[startIndex + 3] = Center + new Vector3(-Extent, -Extent, -Extent);
-                    break;
-                */
                 case BoxFaceSide.Front:
                     vertices[startIndex] = Center + new Vector3(Extent, -Extent, Extent);
                     vertices[startIndex + 1] = Center + new Vector3(-Extent,- Extent, Extent);

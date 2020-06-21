@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UniVoxel.AssetData;
+using UniVoxel.Core;
 
 namespace UniVoxel.Utility
 {
@@ -22,15 +24,41 @@ namespace UniVoxel.Utility
         public float Extent { get; set; }
 
         [SerializeField]
+        BlockType _currentBlockType;
+
+        [SerializeField]
+        BlockDataScriptableObject _blockDataObject;
+
+        [SerializeField]
+        Vector2 _singleTextureLengths = new Vector2(16f, 16f);
+
+        [SerializeField]
+        Vector2 _textureAtlasLengths = new Vector2(256f, 256f);
+
+        public Vector2 GetUVCoord00(BoxFaceSide side)
+        {
+            if (_blockDataObject.TryGetBlockData(_currentBlockType, out var data))
+            {
+                var texAtlasPos = data.GetTexAtlasPosition(side);
+                return BlockUtility.GetUV00FromTextureAtlas(texAtlasPos, _singleTextureLengths, _textureAtlasLengths);
+            }
+
+            throw new System.InvalidOperationException();
+        }
+
+        public Vector2 GetUVCoord11(BoxFaceSide side)
+        {
+            if (_blockDataObject.TryGetBlockData(_currentBlockType, out var data))
+            {
+                var texAtlasPos = data.GetTexAtlasPosition(side);
+                return BlockUtility.GetUV11FromTextureAtlas(texAtlasPos, _singleTextureLengths, _textureAtlasLengths);
+            }
+
+            throw new System.InvalidOperationException();
+        }
+
+        [SerializeField]
         Material _material;
-
-        [SerializeField]
-        Vector2 _uvCoord00 = Vector2.zero;
-        public Vector2 UVCoord00 { get => _uvCoord00; set => _uvCoord00 = value; }
-
-        [SerializeField]
-        Vector2 _uvCoord11 = Vector2.one;
-        public Vector2 UVCoord11 { get => _uvCoord11; set => _uvCoord11 = value; }
 
         [SerializeField]
         bool _showFrontFace = true;
@@ -153,7 +181,7 @@ namespace UniVoxel.Utility
             {
                 if (GetShowFace(side))
                 {
-                    VoxelUtility.AddMeshForBoxFace(side, Center, Extent, this._vertices, this._triangles, this._uv, this.UVCoord00, this.UVCoord11, this._normals, this._tangents, vertexStartIndex, triangleStartIndex);
+                    VoxelUtility.AddMeshForBoxFace(side, Center, Extent, this._vertices, this._triangles, this._uv, GetUVCoord00(side), GetUVCoord11(side), this._normals, this._tangents, vertexStartIndex, triangleStartIndex);
                     vertexStartIndex += VoxelUtility.GetFaceVertexLength();
                     triangleStartIndex += VoxelUtility.GetFaceTriangleLength();
                 }

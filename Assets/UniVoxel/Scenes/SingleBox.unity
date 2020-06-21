@@ -802,9 +802,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf8aab1c7081543449438c889b62af3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currentBlockType: 0
+  _blockDataObject: {fileID: 11400000, guid: 76cdb663c8cc2b64987e6f64b4e1059e, type: 2}
+  _singleTextureLengths: {x: 16, y: 16}
+  _textureAtlasLengths: {x: 256, y: 256}
   _material: {fileID: 2100000, guid: f1a3e06e5222d1e4c8b6f67a0435baae, type: 2}
-  _uvCoord00: {x: 0, y: 0}
-  _uvCoord11: {x: 0.0625, y: 0.0625}
   _showFrontFace: 1
   _showBackFace: 1
   _showRightFace: 1
