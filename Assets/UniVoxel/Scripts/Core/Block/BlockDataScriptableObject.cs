@@ -5,7 +5,7 @@ using System;
 using UniVoxel.Core;
 using UniVoxel.Utility;
 
-namespace UniVoxel.AssetData
+namespace UniVoxel.Core
 {
     [Serializable]
     public struct BlockData

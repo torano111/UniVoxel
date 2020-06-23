@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UniVoxel.AssetData;
 using UniVoxel.Core;
 
 namespace UniVoxel.Utility

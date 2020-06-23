@@ -23,6 +23,10 @@ namespace UniVoxel.Core
 
     public class Block
     {
+        public Block(BlockType blockType)
+        {
+            this.BlockType = blockType;
+        }
         public BlockType BlockType { get; set; }
     }
 }

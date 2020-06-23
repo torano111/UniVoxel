@@ -28,6 +28,12 @@ namespace UniVoxel.Utility
                 return;
             }
 
+            if (vertices == null)
+            {
+                vertices = new Vector3[FaceVertexLength * NumFace];
+                return;
+            }
+
             Array.Resize(ref vertices, vertices.Length + FaceVertexLength * NumFace);
         }
 
@@ -35,6 +41,12 @@ namespace UniVoxel.Utility
         {
             if (NumFace <= 0)
             {
+                return;
+            }
+
+            if (triangles == null)
+            {
+                triangles = new int[FaceTriangleLength * NumFace];
                 return;
             }
 
@@ -48,6 +60,12 @@ namespace UniVoxel.Utility
                 return;
             }
 
+            if (uv0 == null)
+            {
+                uv0 = new Vector2[FaceVertexLength * NumFace];
+                return;
+            }
+
             Array.Resize(ref uv0, uv0.Length + FaceVertexLength * NumFace);
         }
 
@@ -58,6 +76,12 @@ namespace UniVoxel.Utility
                 return;
             }
 
+            if (normals == null)
+            {
+                normals = new Vector3[FaceVertexLength * NumFace];
+                return;
+            }
+
             Array.Resize(ref normals, normals.Length + FaceVertexLength * NumFace);
         }
 
@@ -65,6 +89,12 @@ namespace UniVoxel.Utility
         {
             if (NumFace <= 0)
             {
+                return;
+            }
+
+            if (tangents == null)
+            {
+                tangents = new Vector4[FaceVertexLength * NumFace];
                 return;
             }
 
