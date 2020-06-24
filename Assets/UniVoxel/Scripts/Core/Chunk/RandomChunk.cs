@@ -55,12 +55,12 @@ namespace UniVoxel.Core
             _meshRenderer.material = _material;
             
             // self initialization
-            Initialize(null, _chunkSize, _extent, Vector3Int.zero);
+            // Initialize(null, _chunkSize, _extent, Vector3Int.zero);
 
             InitBlocks();
         }
 
-        protected void InitBlocks()
+        public void InitBlocks()
         {
             for (var x = 0; x < Size; x++)
             {

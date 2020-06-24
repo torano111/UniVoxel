@@ -7,7 +7,7 @@ namespace UniVoxel.Core
 {
     public class WorldBase : MonoBehaviour, IChunkHolder
     {
-        Dictionary<Vector3Int, ChunkBase> _chunks = new Dictionary<Vector3Int, ChunkBase>();
+        protected Dictionary<Vector3Int, ChunkBase> _chunks = new Dictionary<Vector3Int, ChunkBase>();
 
         public virtual bool TryGetNeighbourChunk(IChunk chunk, BoxFaceSide neighbourDirection, out IChunk neighbourChunk)
         {
