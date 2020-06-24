@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UniVoxel.Utility;
+using System;
+using System.Linq;
+using Random = UnityEngine.Random;
 
 namespace UniVoxel.Core
 {
@@ -30,24 +33,12 @@ namespace UniVoxel.Core
 
         public Vector2 GetUVCoord00(BlockType blockType, BoxFaceSide side)
         {
-            if (_blockDataObject.TryGetBlockData(blockType, out var data))
-            {
-                var texAtlasPos = data.GetTexAtlasPosition(side);
-                return BlockUtility.GetUV00FromTextureAtlas(texAtlasPos, _singleTextureLengths, _textureAtlasLengths);
-            }
-
-            throw new System.InvalidOperationException();
+            return _blockDataObject.GetUVCoord00(blockType, side, _singleTextureLengths, _textureAtlasLengths);
         }
 
         public Vector2 GetUVCoord11(BlockType blockType, BoxFaceSide side)
         {
-            if (_blockDataObject.TryGetBlockData(blockType, out var data))
-            {
-                var texAtlasPos = data.GetTexAtlasPosition(side);
-                return BlockUtility.GetUV11FromTextureAtlas(texAtlasPos, _singleTextureLengths, _textureAtlasLengths);
-            }
-
-            throw new System.InvalidOperationException();
+            return _blockDataObject.GetUVCoord11(blockType, side, _singleTextureLengths, _textureAtlasLengths);
         }
 
         void Start()
@@ -62,16 +53,20 @@ namespace UniVoxel.Core
 
         public void InitBlocks()
         {
+            var blockTypes = System.Enum.GetValues(typeof(BlockType));
+
             for (var x = 0; x < Size; x++)
             {
                 for (var y = 0; y < Size; y++)
                 {
                     for (var z = 0; z < Size; z++)
                     {
+                        var randomBlockType = (BlockType)Random.Range((int)blockTypes.GetValue(0), blockTypes.Length);
                         var randomNum = Random.Range(0, 100);
+
                         if (randomNum < _spawnBoxRate)
                         {
-                            SetBlock(x, y, z, new Block(BlockType.Grass));
+                            SetBlock(x, y, z, new Block(randomBlockType));
                         }
                     }
                 }

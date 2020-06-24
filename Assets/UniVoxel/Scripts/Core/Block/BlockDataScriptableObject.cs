@@ -84,5 +84,27 @@ namespace UniVoxel.Core
                 _blockDataDictionary.Add(data.BlockType, data);
             }
         }
+
+        public Vector2 GetUVCoord00(BlockType blockType, BoxFaceSide side, Vector2 singleTextureLengths, Vector2 textureAtlasLengths)
+        {
+            if (TryGetBlockData(blockType, out var data))
+            {
+                var texAtlasPos = data.GetTexAtlasPosition(side);
+                return BlockUtility.GetUV00FromTextureAtlas(texAtlasPos, singleTextureLengths, textureAtlasLengths);
+            }
+
+            throw new System.InvalidOperationException();
+        }
+
+        public Vector2 GetUVCoord11(BlockType blockType, BoxFaceSide side, Vector2 singleTextureLengths, Vector2 textureAtlasLengths)
+        {
+            if (TryGetBlockData(blockType, out var data))
+            {
+                var texAtlasPos = data.GetTexAtlasPosition(side);
+                return BlockUtility.GetUV11FromTextureAtlas(texAtlasPos, singleTextureLengths, textureAtlasLengths);
+            }
+
+            throw new System.InvalidOperationException();
+        }
     }
 }
