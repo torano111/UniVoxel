@@ -111,11 +111,12 @@ MonoBehaviour:
   _maxStoneLayerHeight: 55
   _minHeight: 0
   _densityThreshold: 0.4
-  _positionMultiplier: 0.01
+  _heightNoiseScaler: 0.01
   _heightNoiseOctaves: 4
   _heightNoisePersistence: 0.5
-  _densityNoiseOctaves: 4
-  _densityNoisePersistence: 1.1
+  _densityNoiseScaler: 0.04
+  _densityNoiseOctaves: 3
+  _densityNoisePersistence: 2
   _material: {fileID: 2100000, guid: f1a3e06e5222d1e4c8b6f67a0435baae, type: 2}
   _blockDataObject: {fileID: 11400000, guid: 76cdb663c8cc2b64987e6f64b4e1059e, type: 2}
   _singleTextureLengths: {x: 16, y: 16}

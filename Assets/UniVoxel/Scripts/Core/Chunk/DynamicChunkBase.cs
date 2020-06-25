@@ -62,8 +62,8 @@ namespace UniVoxel.Core
 
         protected virtual void UpdateCollider()
         {
-            _meshFilter.sharedMesh = null;
-            _meshFilter.mesh = this._mesh;
+            _meshCollider.sharedMesh = null;
+            _meshCollider.sharedMesh = this._mesh;
         }
 
         protected virtual void UpdateChunk(bool updatesCollider = true)

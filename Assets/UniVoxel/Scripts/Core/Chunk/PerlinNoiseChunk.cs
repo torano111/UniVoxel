@@ -10,6 +10,8 @@ namespace UniVoxel.Core
         [SerializeField]
         int _maxGroundHeight = 20;
 
+        public int MaxGroundHeight => _maxGroundHeight;
+
         [SerializeField]
         int _maxStoneLayerHeight = 15;
 
@@ -20,13 +22,16 @@ namespace UniVoxel.Core
         double _densityThreshold = 0.5;
 
         [SerializeField]
-        float _positionMultiplier = 0.1f;
+        float _heightNoiseScaler = 0.1f;
 
         [SerializeField]
         int _heightNoiseOctaves = 4;
 
         [SerializeField]
         double _heightNoisePersistence = 0.5;
+
+        [SerializeField]
+        float _densityNoiseScaler = 0.1f;
 
         [SerializeField]
         int _densityNoiseOctaves = 4;
@@ -135,7 +140,7 @@ namespace UniVoxel.Core
                         Block block = null;
                         var worldPos = gameObject.transform.position + new Vector3(x, y, z) * Extent * 2;
 
-                        var densityNoise = perlin.GetOctavePerlin3D(worldPos.x * _positionMultiplier, worldPos.y * _positionMultiplier, worldPos.z * _positionMultiplier, _densityNoiseOctaves, _densityNoisePersistence);
+                        var densityNoise = perlin.GetOctavePerlin3D(worldPos.x * _densityNoiseScaler, worldPos.y * _densityNoiseScaler, worldPos.z * _densityNoiseScaler, _densityNoiseOctaves, _densityNoisePersistence);
 
                         int currentHeight = (int)worldPos.y;
 
@@ -145,7 +150,7 @@ namespace UniVoxel.Core
                         }
                         else
                         {
-                            var heightNoise = perlin.GetOctavePerlin2D(worldPos.x * _positionMultiplier, worldPos.z * _positionMultiplier, _heightNoiseOctaves, _heightNoisePersistence);
+                            var heightNoise = perlin.GetOctavePerlin2D(worldPos.x * _heightNoiseScaler, worldPos.z * _heightNoiseScaler, _heightNoiseOctaves, _heightNoisePersistence);
                             if (currentHeight <= GetHeightThreshold(_maxStoneLayerHeight, heightNoise))
                             {
                                 block = new Block(BlockType.Stone);

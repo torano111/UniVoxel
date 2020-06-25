@@ -265,11 +265,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5be535934b94ce84da87a34e7a726be2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _ranges: {x: 5, y: 3, z: 5}
   _chunkSize: 16
   _extent: 0.5
+  _ranges: {x: 2, y: 2, z: 2}
   _chunkPrefab: {fileID: 5130475949019091047, guid: 4c6401c07255b0e4bb269ba9ba41d545,
     type: 3}
+  _player: {fileID: 5964182197778504237, guid: fdddf4e85b0feac439384cbde1c87003, type: 3}
+  _playerSpawnPoint: {x: 5, y: 0, z: 5}
 --- !u!4 &1529972742
 Transform:
   m_ObjectHideFlags: 0
