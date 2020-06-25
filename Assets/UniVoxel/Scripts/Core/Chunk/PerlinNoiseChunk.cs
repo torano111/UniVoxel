@@ -14,13 +14,25 @@ namespace UniVoxel.Core
         int _maxStoneLayerHeight = 15;
 
         [SerializeField]
+        int _minHeight = 0;
+
+        [SerializeField]
+        double _densityThreshold = 0.5;
+
+        [SerializeField]
         float _positionMultiplier = 0.1f;
 
         [SerializeField]
-        int _octaves = 4;
+        int _heightNoiseOctaves = 4;
 
         [SerializeField]
-        double _persistence = 0.5;
+        double _heightNoisePersistence = 0.5;
+
+        [SerializeField]
+        int _densityNoiseOctaves = 4;
+
+        [SerializeField]
+        double _densityNoisePersistence = 0.5;
 
         [SerializeField]
         Material _material;
@@ -112,7 +124,7 @@ namespace UniVoxel.Core
 
         void InitBlocks()
         {
-            var perlin = new Perlin();
+            Perlin perlin = new Perlin();
 
             for (var x = 0; x < Size; x++)
             {
@@ -123,38 +135,33 @@ namespace UniVoxel.Core
                         Block block = null;
                         var worldPos = gameObject.transform.position + new Vector3(x, y, z) * Extent * 2;
 
-                        var noise = perlin.OctavePerlin(worldPos.x * _positionMultiplier, worldPos.y * _positionMultiplier, worldPos.z * _positionMultiplier, _octaves, _persistence);
-                        
-                        // if (noise <= 0.45)
-                        // {
-                        //     block = new Block(BlockType.Stone);
-                        // }
-                        // else if (noise <= 0.5)
-                        // {
-                        //     block = new Block(BlockType.Dirt);
-                        // }
-                        // else
-                        // {
-                        //     block = null;
-                        // }
+                        var densityNoise = perlin.GetOctavePerlin3D(worldPos.x * _positionMultiplier, worldPos.y * _positionMultiplier, worldPos.z * _positionMultiplier, _densityNoiseOctaves, _densityNoisePersistence);
 
                         int currentHeight = (int)worldPos.y;
 
-                        if (currentHeight <= GetHeightThreshold(_maxStoneLayerHeight, noise))
+                        if (densityNoise <= _densityThreshold)
                         {
-                            block = new Block(BlockType.Stone);
-                        }
-                        else if (currentHeight < GetHeightThreshold(_maxGroundHeight, noise))
-                        {
-                            block = new Block(BlockType.Dirt);
-                        }
-                        else if (currentHeight == GetHeightThreshold(_maxGroundHeight, noise))
-                        {
-                            block = new Block(BlockType.Grass);
+                            block = null;
                         }
                         else
                         {
-                            block = null;
+                            var heightNoise = perlin.GetOctavePerlin2D(worldPos.x * _positionMultiplier, worldPos.z * _positionMultiplier, _heightNoiseOctaves, _heightNoisePersistence);
+                            if (currentHeight <= GetHeightThreshold(_maxStoneLayerHeight, heightNoise))
+                            {
+                                block = new Block(BlockType.Stone);
+                            }
+                            else if (currentHeight < GetHeightThreshold(_maxGroundHeight, heightNoise))
+                            {
+                                block = new Block(BlockType.Dirt);
+                            }
+                            else if (currentHeight == GetHeightThreshold(_maxGroundHeight, heightNoise))
+                            {
+                                block = new Block(BlockType.Grass);
+                            }
+                            else
+                            {
+                                block = null;
+                            }
                         }
 
                         if (block != null)
@@ -170,7 +177,7 @@ namespace UniVoxel.Core
 
         int GetHeightThreshold(float maxHeight, double noise)
         {
-            return (int)Mathf.Lerp(0f, maxHeight, (float)noise);
+            return (int)Mathf.Lerp(_minHeight, maxHeight, (float)noise);
         }
     }
 }

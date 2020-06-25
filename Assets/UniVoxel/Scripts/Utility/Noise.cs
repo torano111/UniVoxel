@@ -4,6 +4,10 @@ using UnityEngine;
 
 namespace UniVoxel.Utility
 {
+    /// <summary>
+    /// Improved Perlin Noise
+    /// <see href="https://adrianb.io/2014/08/09/perlinnoise.html"> Understanding Perlin Noise </see>
+    /// </summary>
     public class Perlin
     {
 
@@ -14,17 +18,38 @@ namespace UniVoxel.Utility
             this.repeat = repeat;
         }
 
-        public double OctavePerlin(double x, double y, double z, int octaves, double persistence)
+        public double GetOctavePerlin2D(double x, double z, int octaves, double persistence)
         {
             double total = 0;
             double frequency = 1;
             double amplitude = 1;
 
             // Used for normalizing result to 0.0 - 1.0
-            double maxValue = 0;            
+            double maxValue = 0;
             for (int i = 0; i < octaves; i++)
             {
-                total += perlin(x * frequency, y * frequency, z * frequency) * amplitude;
+                total += GetPerlinNoise2D(x * frequency, z * frequency) * amplitude;
+
+                maxValue += amplitude;
+
+                amplitude *= persistence;
+                frequency *= 2;
+            }
+
+            return total / maxValue;
+        }
+
+        public double GetOctavePerlin3D(double x, double y, double z, int octaves, double persistence)
+        {
+            double total = 0;
+            double frequency = 1;
+            double amplitude = 1;
+
+            // Used for normalizing result to 0.0 - 1.0
+            double maxValue = 0;
+            for (int i = 0; i < octaves; i++)
+            {
+                total += GetPerlinNoise3D(x * frequency, y * frequency, z * frequency) * amplitude;
 
                 maxValue += amplitude;
 
@@ -50,7 +75,7 @@ namespace UniVoxel.Utility
         251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
         49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
         138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180
-    };
+        };
 
         // Doubled permutation to avoid overflow
         private static readonly int[] p;
@@ -64,7 +89,37 @@ namespace UniVoxel.Utility
             }
         }
 
-        public double perlin(double x, double y, double z)
+        double GetPerlinNoise2D(double x, double y)
+        {
+            // If we have any repeat on, change the coordinates to their "local" repetitions
+            if (repeat > 0)
+            {
+                x = x % repeat;
+                y = y % repeat;
+            }
+
+            int xi = (int)x & 255;
+            int yi = (int)y & 255;
+            double xf = x - (int)x;
+            double yf = y - (int)y;
+            double u = Fade(xf);
+            double v = Fade(yf);
+
+            int aa, ab, ba, bb;
+            aa = p[p[p[xi] + yi]];
+            ab = p[p[p[xi] + Inc(yi)]];
+            ba = p[p[p[Inc(xi)] + yi]];
+            bb = p[p[p[Inc(xi)] + Inc(yi)]];
+
+            double x1, x2, y1;
+            x1 = Lerp(Grad2D(aa, xf, yf), Grad2D(ba, xf - 1, yf), u);
+            x2 = Lerp(Grad2D(ab, xf, yf - 1), Grad2D(bb, xf - 1, yf - 1), u);
+            y1 = Lerp(x1, x2, v);
+
+            return (y1 + 1) / 2;
+        }
+
+        double GetPerlinNoise3D(double x, double y, double z)
         {
             // If we have any repeat on, change the coordinates to their "local" repetitions
             if (repeat > 0)
@@ -84,19 +139,19 @@ namespace UniVoxel.Utility
             double xf = x - (int)x;
             double yf = y - (int)y;
             double zf = z - (int)z;
-            double u = fade(xf);
-            double v = fade(yf);
-            double w = fade(zf);
+            double u = Fade(xf);
+            double v = Fade(yf);
+            double w = Fade(zf);
 
             int aaa, aba, aab, abb, baa, bba, bab, bbb;
             aaa = p[p[p[xi] + yi] + zi];
-            aba = p[p[p[xi] + inc(yi)] + zi];
-            aab = p[p[p[xi] + yi] + inc(zi)];
-            abb = p[p[p[xi] + inc(yi)] + inc(zi)];
-            baa = p[p[p[inc(xi)] + yi] + zi];
-            bba = p[p[p[inc(xi)] + inc(yi)] + zi];
-            bab = p[p[p[inc(xi)] + yi] + inc(zi)];
-            bbb = p[p[p[inc(xi)] + inc(yi)] + inc(zi)];
+            aba = p[p[p[xi] + Inc(yi)] + zi];
+            aab = p[p[p[xi] + yi] + Inc(zi)];
+            abb = p[p[p[xi] + Inc(yi)] + Inc(zi)];
+            baa = p[p[p[Inc(xi)] + yi] + zi];
+            bba = p[p[p[Inc(xi)] + Inc(yi)] + zi];
+            bab = p[p[p[Inc(xi)] + yi] + Inc(zi)];
+            bbb = p[p[p[Inc(xi)] + Inc(yi)] + Inc(zi)];
 
             // The gradient function calculates the dot product between a pseudorandom
             // gradient vector and the vector from the input coordinate to the 8
@@ -104,27 +159,19 @@ namespace UniVoxel.Utility
             // This is all then lerped together as a sort of weighted average based on the faded (u,v,w)
             // values we made earlier.
             double x1, x2, y1, y2;
-            x1 = lerp(grad(aaa, xf, yf, zf),
-                        grad(baa, xf - 1, yf, zf),
-                        u);
-            x2 = lerp(grad(aba, xf, yf - 1, zf),
-                        grad(bba, xf - 1, yf - 1, zf),
-                          u);
-            y1 = lerp(x1, x2, v);
+            x1 = Lerp(Grad3D(aaa, xf, yf, zf), Grad3D(baa, xf - 1, yf, zf), u);
+            x2 = Lerp(Grad3D(aba, xf, yf - 1, zf), Grad3D(bba, xf - 1, yf - 1, zf), u);
+            y1 = Lerp(x1, x2, v);
 
-            x1 = lerp(grad(aab, xf, yf, zf - 1),
-                        grad(bab, xf - 1, yf, zf - 1),
-                        u);
-            x2 = lerp(grad(abb, xf, yf - 1, zf - 1),
-                          grad(bbb, xf - 1, yf - 1, zf - 1),
-                          u);
-            y2 = lerp(x1, x2, v);
+            x1 = Lerp(Grad3D(aab, xf, yf, zf - 1), Grad3D(bab, xf - 1, yf, zf - 1), u);
+            x2 = Lerp(Grad3D(abb, xf, yf - 1, zf - 1), Grad3D(bbb, xf - 1, yf - 1, zf - 1), u);
+            y2 = Lerp(x1, x2, v);
 
             // For convenience we bound it to 0 - 1 (theoretical min/max before is -1 - 1)
-            return (lerp(y1, y2, w) + 1) / 2;
+            return (Lerp(y1, y2, w) + 1) / 2;
         }
 
-        public int inc(int num)
+        int Inc(int num)
         {
             num++;
             if (repeat > 0) num %= repeat;
@@ -132,7 +179,28 @@ namespace UniVoxel.Utility
             return num;
         }
 
-        public static double grad(int hash, double x, double y, double z)
+
+        // get dot prodecut of (x, y) and one of 4(number of edges) gradient vectors
+        // gradient vectors are:
+        // (0, 1), (0, -1), (1, 0), (-1, 0)
+        static double Grad2D(int hash, double x, double y)
+        {
+            switch (hash & 0x3)
+            {
+                case 0x0: return x + y;
+                case 0x1: return -x + y;
+                case 0x2: return x - y;
+                case 0x3: return -x - y;
+                default: return 0; // never happens
+            }
+        }
+
+        // get dot prodecut of (x, y, z) and one of 16(number of edges) gradient vectors
+        // gradient vectors are:
+        // (1,1,0),(-1,1,0),(1,-1,0),(-1,-1,0),
+        // (1,0,1),(-1,0,1),(1,0,-1),(-1,0,-1),
+        // (0,1,1),(0,-1,1),(0,1,-1),(0,-1,-1)
+        static double Grad3D(int hash, double x, double y, double z)
         {
             // Take the hashed value and take the first 4 bits of it (15 == 0b1111)
             int h = hash & 15;
@@ -155,21 +223,22 @@ namespace UniVoxel.Utility
                 v = z;
 
             // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.
+            // dot(A, B) = A.x * B.x + A.y * B.y + A.z * B.z
             return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
         }
 
         // Fade function as defined by Ken Perlin.  This eases coordinate values
         // so that they will "ease" towards integral values.  This ends up smoothing
         // the final output.
-        public static double fade(double t)
+        static double Fade(double t)
         {
             // 6t^5 - 15t^4 + 10t^3
             return t * t * t * (t * (t * 6 - 15) + 10);
         }
 
-        public static double lerp(double a, double b, double x)
+        static double Lerp(double a, double b, double t)
         {
-            return a + x * (b - a);
+            return a + t * (b - a);
         }
     }
 }
