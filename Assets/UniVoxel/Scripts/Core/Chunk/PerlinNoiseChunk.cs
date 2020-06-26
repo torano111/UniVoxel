@@ -51,6 +51,8 @@ namespace UniVoxel.Core
         [SerializeField]
         Vector2 _textureAtlasLengths = new Vector2(256f, 256f);
 
+        Perlin perlin = new Perlin();
+
         public Vector2 GetUVCoord00(BlockType blockType, BoxFaceSide side)
         {
             return _blockDataObject.GetUVCoord00(blockType, side, _singleTextureLengths, _textureAtlasLengths);
@@ -129,8 +131,6 @@ namespace UniVoxel.Core
 
         void InitBlocks()
         {
-            Perlin perlin = new Perlin();
-
             for (var x = 0; x < Size; x++)
             {
                 for (var y = 0; y < Size; y++)
@@ -138,35 +138,10 @@ namespace UniVoxel.Core
                     for (var z = 0; z < Size; z++)
                     {
                         Block block = null;
-                        var worldPos = gameObject.transform.position + new Vector3(x, y, z) * Extent * 2;
 
-                        var densityNoise = perlin.GetOctavePerlin3D(worldPos.x * _densityNoiseScaler, worldPos.y * _densityNoiseScaler, worldPos.z * _densityNoiseScaler, _densityNoiseOctaves, _densityNoisePersistence);
-
-                        int currentHeight = (int)worldPos.y;
-
-                        if (densityNoise <= _densityThreshold)
+                        if (TryGetBlockType(GetBlockWorldPosition(Position, new Vector3Int(x, y, z)), out var blockType))
                         {
-                            block = null;
-                        }
-                        else
-                        {
-                            var heightNoise = perlin.GetOctavePerlin2D(worldPos.x * _heightNoiseScaler, worldPos.z * _heightNoiseScaler, _heightNoiseOctaves, _heightNoisePersistence);
-                            if (currentHeight <= GetHeightThreshold(_maxStoneLayerHeight, heightNoise))
-                            {
-                                block = new Block(BlockType.Stone);
-                            }
-                            else if (currentHeight < GetHeightThreshold(_maxGroundHeight, heightNoise))
-                            {
-                                block = new Block(BlockType.Dirt);
-                            }
-                            else if (currentHeight == GetHeightThreshold(_maxGroundHeight, heightNoise))
-                            {
-                                block = new Block(BlockType.Grass);
-                            }
-                            else
-                            {
-                                block = null;
-                            }
+                            block = new Block(blockType);
                         }
 
                         if (block != null)
@@ -176,13 +151,100 @@ namespace UniVoxel.Core
                     }
                 }
             }
+        }
 
-            MarkUpdate();
+        Vector3 GetBlockWorldPosition(Vector3 chunkWorldPos, Vector3Int blockIndices)
+        {
+            return chunkWorldPos + (Vector3)blockIndices * Extent * 2f;
+        }
+
+        public bool TryGetBlockType(Vector3 worldPos, out BlockType blockType)
+        {
+            blockType = BlockType.Grass;
+
+            var densityNoise = perlin.GetOctavePerlin3D(worldPos.x * _densityNoiseScaler, worldPos.y * _densityNoiseScaler, worldPos.z * _densityNoiseScaler, _densityNoiseOctaves, _densityNoisePersistence);
+
+            int currentHeight = (int)worldPos.y;
+
+            if (densityNoise <= _densityThreshold)
+            {
+                return false;
+            }
+            else
+            {
+                var heightNoise = perlin.GetOctavePerlin2D(worldPos.x * _heightNoiseScaler, worldPos.z * _heightNoiseScaler, _heightNoiseOctaves, _heightNoisePersistence);
+                if (currentHeight <= GetHeightThreshold(_maxStoneLayerHeight, heightNoise))
+                {
+                    blockType = BlockType.Stone;
+                    return true;
+                }
+                else if (currentHeight < GetHeightThreshold(_maxGroundHeight, heightNoise))
+                {
+                    blockType = BlockType.Dirt;
+                    return true;
+                }
+                else if (currentHeight == GetHeightThreshold(_maxGroundHeight, heightNoise))
+                {
+                    blockType = BlockType.Grass;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
 
         int GetHeightThreshold(float maxHeight, double noise)
         {
             return (int)Mathf.Lerp(_minHeight, maxHeight, (float)noise);
+        }
+
+        public override bool IsNeighbourSolid(int x, int y, int z, BoxFaceSide neighbourDirection)
+        {
+            var neighbourBlockIndices = BlockUtility.GetNeighbourPosition(x, y, z, neighbourDirection, 1);
+
+            if (ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
+            {
+                return _blocks[neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z] != null;
+            }
+            else
+            {
+                var neighbourChunkPos = BlockUtility.GetNeighbourPosition(this.Position.x, this.Position.y, this.Position.z, neighbourDirection, Size);
+
+                var diff = neighbourBlockIndices - new Vector3Int(x, y, z);
+                for (var axis = 0; axis < 3; axis++)
+                {
+                    if (diff[axis] < 0)
+                    {
+                        neighbourBlockIndices[axis] = Size - 1;
+                        break;
+                    }
+
+                    else if (0 < diff[axis])
+                    {
+                        neighbourBlockIndices[axis] = 0;
+                        break;
+                    }
+                }
+
+                if (_chunkHolder != null && _chunkHolder.TryGetNeighbourChunk(this, neighbourDirection, out var neighbourChunk))
+                {
+                    if (!neighbourChunk.ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
+                    {
+                        throw new System.InvalidOperationException($"couldn't find a neighbour block in a neighbour chunk\nchunkPos: x={x}, y={y}, z={z} neighbourPos: x={neighbourBlockIndices.x}, y={neighbourBlockIndices.y}, z={neighbourBlockIndices.z}");
+                    }
+
+                    return neighbourChunk.IsSolid(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z);
+                }
+                // if no chunk found, then calculate noise instead of the neighbour chunk and check if solid
+                else
+                {
+                    var virtualNeighbourBlockWorldPos = GetBlockWorldPosition(neighbourChunkPos, neighbourBlockIndices);
+
+                    return TryGetBlockType(virtualNeighbourBlockWorldPos, out var blockType);
+                }
+            }
         }
     }
 }

@@ -7,5 +7,7 @@ namespace UniVoxel.Core
     public interface IChunkHolder
     {
         bool TryGetNeighbourChunk(IChunk chunk, BoxFaceSide neighbourDirection, out IChunk neighbourChunk);
+        bool TryGetChunkAt(Vector3 worldPos, out ChunkBase chunk);
+        Vector3Int GetChunkPositionAt(Vector3 worldPos);
     }
 }

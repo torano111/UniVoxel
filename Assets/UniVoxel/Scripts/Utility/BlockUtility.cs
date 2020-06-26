@@ -18,27 +18,27 @@ namespace UniVoxel.Utility
             return new Vector2(singleTextureLengths.x / textureAtlasLengths.x * (positionOnTextureAtlas.x + 1), singleTextureLengths.y / textureAtlasLengths.y * (positionOnTextureAtlas.y + 1)) - _littleSpace;
         }
 
-        public static Vector3Int GetNeighbourPosition(int x, int y, int z, BoxFaceSide neighbourDirection)
+        public static Vector3Int GetNeighbourPosition(int x, int y, int z, BoxFaceSide neighbourDirection, int offset = 1)
         {
             switch (neighbourDirection)
             {
                 case BoxFaceSide.Front:
-                    z++;
+                    z += offset;
                     break;
                 case BoxFaceSide.Back:
-                    z--;
+                    z -= offset;
                     break;
                 case BoxFaceSide.Right:
-                    x++;
+                    x += offset;
                     break;
                 case BoxFaceSide.Left:
-                    x--;
+                    x -= offset;
                     break;
                 case BoxFaceSide.Top:
-                    y++;
+                    y += offset;
                     break;
                 case BoxFaceSide.Bottom:
-                    y--;
+                    y -= offset;
                     break;
                 default:
                     throw new System.ArgumentException();

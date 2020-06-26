@@ -17,7 +17,7 @@ namespace UniVoxel.Core
 
         public virtual bool TryGetNeighbourChunk(IChunk chunk, BoxFaceSide neighbourDirection, out IChunk neighbourChunk)
         {
-            var neighbourChunkPos = BlockUtility.GetNeighbourPosition(chunk.Position.x, chunk.Position.y, chunk.Position.z, neighbourDirection);
+            var neighbourChunkPos = BlockUtility.GetNeighbourPosition(chunk.Position.x, chunk.Position.y, chunk.Position.z, neighbourDirection, _chunkSize);
 
             var result = _chunks.TryGetValue(neighbourChunkPos, out var c);
 

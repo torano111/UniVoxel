@@ -86,21 +86,21 @@ namespace UniVoxel.Core
             this.NeedsUpdate = false;
         }
 
-        public bool TryGetNeighbourBlock(int x, int y, int z, BoxFaceSide neighbourDirection, out Block block)
+        public virtual bool TryGetNeighbourBlock(int x, int y, int z, BoxFaceSide neighbourDirection, out Block block)
         {
-            var neighbourPos = BlockUtility.GetNeighbourPosition(x, y, z, neighbourDirection);
+            var neighbourPos = BlockUtility.GetNeighbourPosition(x, y, z, neighbourDirection, 1);
 
             return TryGetBlock(neighbourPos.x, neighbourPos.y, neighbourPos.z, out block);
         }
 
-        public bool IsNeighbourSolid(int x, int y, int z, BoxFaceSide neighbourDirection)
+        public virtual bool IsNeighbourSolid(int x, int y, int z, BoxFaceSide neighbourDirection)
         {
-            var neighbourPos = BlockUtility.GetNeighbourPosition(x, y, z, neighbourDirection);
+            var neighbourBlockIndices = BlockUtility.GetNeighbourPosition(x, y, z, neighbourDirection, 1);
 
-            if (ContainBlock(neighbourPos.x, neighbourPos.y, neighbourPos.z))
+            if (ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
             {
                 // not solid if the block is null
-                return _blocks[neighbourPos.x, neighbourPos.y, neighbourPos.z] != null;
+                return _blocks[neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z] != null;
             }
             // check the neighbour block in a neighbour chunk if this chunk doesn't contain neighbour
             else
@@ -108,31 +108,31 @@ namespace UniVoxel.Core
                 if (_chunkHolder != null && _chunkHolder.TryGetNeighbourChunk(this, neighbourDirection, out var neighbourChunk))
                 {
                     // get difference between current pos and neighbour pos
-                    var diff = neighbourPos - new Vector3Int(x, y, z);
+                    var diff = neighbourBlockIndices - new Vector3Int(x, y, z);
                     for (var axis = 0; axis < 3; axis++)
                     {
                         // if the difference is negative(should be -1), then the actual position in the neighbour chunk is neighbour size - 1.
                         if (diff[axis] < 0)
                         {
-                            neighbourPos[axis] = neighbourChunk.GetChunkSize() - 1;
+                            neighbourBlockIndices[axis] = neighbourChunk.GetChunkSize() - 1;
                             break;
                         }
 
                         // if the difference is positive(should be +1), then the actual position in the neighbour chunk is 0.
                         else if (0 < diff[axis])
                         {
-                            neighbourPos[axis] = 0;
+                            neighbourBlockIndices[axis] = 0;
                             break;
                         }
                     }
 
                     // check if the correct position is given
-                    if (!neighbourChunk.ContainBlock(neighbourPos.x, neighbourPos.y, neighbourPos.z))
+                    if (!neighbourChunk.ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
                     {
-                        throw new System.InvalidOperationException($"couldn't find a neighbour block in a neighbour chunk\nchunkPos: x={x}, y={y}, z={z} neighbourPos: x={neighbourPos.x}, y={neighbourPos.y}, z={neighbourPos.z}");
+                        throw new System.InvalidOperationException($"couldn't find a neighbour block in a neighbour chunk\nchunkPos: x={x}, y={y}, z={z} neighbourPos: x={neighbourBlockIndices.x}, y={neighbourBlockIndices.y}, z={neighbourBlockIndices.z}");
                     }
 
-                    return neighbourChunk.IsSolid(neighbourPos.x, neighbourPos.y, neighbourPos.z);
+                    return neighbourChunk.IsSolid(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z);
                 }
 
                 // if neither chunk holder nor neighbour chunk found, then just return false
