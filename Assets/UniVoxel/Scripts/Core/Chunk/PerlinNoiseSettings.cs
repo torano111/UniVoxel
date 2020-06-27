@@ -71,7 +71,17 @@ namespace UniVoxel.Core
         public PerlinNoise2DData Noise2D => _2dData;
 
         [SerializeField]
+        bool _useNoise2D = true;
+
+        public bool UseNoise2D => _useNoise2D;
+
+        [SerializeField]
         PerlinNoise3DData _3dData;
         public PerlinNoise3DData Noise3D => _3dData;
+
+        [SerializeField]
+        bool _useNoise3D = true;
+
+        public bool UseNoise3D => _useNoise3D;
     }
 }

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: WorldSettings
   m_EditorClassIdentifier: 
   _data:
-    _coordinateLimit: 30000000
+    _minCoordinates: {x: -30000000, y: -200, z: -30000000}
+    _maxCoordinates: {x: 30000000, y: 100, z: 30000000}
     _chunkSize: 16
     _extent: 0.5

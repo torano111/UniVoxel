@@ -9,17 +9,14 @@ namespace UniVoxel.Core
     public struct WorldData
     {
         [SerializeField]
-        float _coordinateLimit;
+        Vector3 _minCoordinates;
 
-        public Vector3 GetMinCoordinate()
-        {
-            return new Vector3(-_coordinateLimit, -_coordinateLimit, -_coordinateLimit);
-        }
+        public Vector3 MinCoordinates => _minCoordinates;
 
-        public Vector3 GetMaxCoordinate()
-        {
-            return new Vector3(_coordinateLimit, _coordinateLimit, _coordinateLimit);
-        }
+        [SerializeField]
+        Vector3 _maxCoordinates;
+
+        public Vector3 MaxCoordinates => _maxCoordinates;
 
         [SerializeField]
         int _chunkSize;

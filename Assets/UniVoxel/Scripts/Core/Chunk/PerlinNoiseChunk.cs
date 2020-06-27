@@ -25,6 +25,9 @@ namespace UniVoxel.Core
         [SerializeField]
         Vector2 _textureAtlasLengths = new Vector2(256f, 256f);
 
+        [SerializeField]
+        bool _accurateSolidCheck = true;
+
         Perlin perlin = new Perlin();
 
         public Vector2 GetUVCoord00(BlockType blockType, BoxFaceSide side)
@@ -134,19 +137,23 @@ namespace UniVoxel.Core
 
         public bool TryGetBlockType(Vector3 worldPos, out BlockType blockType)
         {
-            blockType = BlockType.Grass;
+            blockType = default(BlockType);
 
-            var densityNoise = perlin.GetOctavePerlin3D(worldPos.x * Noise3D.DensityNoiseScaler, worldPos.y * Noise3D.DensityNoiseScaler, worldPos.z * Noise3D.DensityNoiseScaler, Noise3D.DensityNoiseOctaves, Noise3D.DensityNoisePersistence);
-
+            var densityNoise = CalculateNoise3D(worldPos);
             int currentHeight = (int)worldPos.y;
 
-            if (densityNoise <= Noise3D.DensityThreshold)
+            if (_perlinNoiseSettings.UseNoise3D && densityNoise <= Noise3D.DensityThreshold)
             {
                 return false;
             }
             else
             {
-                var heightNoise = perlin.GetOctavePerlin2D(worldPos.x * Noise2D.HeightNoiseScaler, worldPos.z * Noise2D.HeightNoiseScaler, Noise2D.HeightNoiseOctaves, Noise2D.HeightNoisePersistence);
+                if (!_perlinNoiseSettings.UseNoise2D)
+                {
+                    return true;
+                }
+
+                var heightNoise = CalculateNoise2D(worldPos);
 
                 if (currentHeight <= GetHeightThreshold(Noise2D.MaxStoneLayerHeight, heightNoise))
                 {
@@ -168,6 +175,18 @@ namespace UniVoxel.Core
                     return false;
                 }
             }
+        }
+
+        public double CalculateNoise2D(Vector3 worldPos)
+        {
+            // make the coordinates positive since calculating Perlin Noise may not work correctly with negative values.
+            return perlin.GetOctavePerlin2D(worldPos.x * Noise2D.HeightNoiseScaler, worldPos.z * Noise2D.HeightNoiseScaler, Noise2D.HeightNoiseOctaves, Noise2D.HeightNoisePersistence);
+        }
+
+        public double CalculateNoise3D(Vector3 worldPos)
+        {
+            // make the coordinates positive since calculating Perlin Noise may not work correctly with negative values.
+            return perlin.GetOctavePerlin3D(worldPos.x * Noise3D.DensityNoiseScaler, worldPos.y * Noise3D.DensityNoiseScaler, worldPos.z * Noise3D.DensityNoiseScaler, Noise3D.DensityNoiseOctaves, Noise3D.DensityNoisePersistence);
         }
 
         int GetHeightThreshold(float maxHeight, double noise)
@@ -213,12 +232,14 @@ namespace UniVoxel.Core
                     return neighbourChunk.IsSolid(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z);
                 }
                 // if no chunk found, then calculate noise instead of the neighbour chunk and check if solid
-                else
+                else if (_accurateSolidCheck)
                 {
                     var virtualNeighbourBlockWorldPos = GetBlockWorldPosition(neighbourChunkPos, neighbourBlockIndices);
 
                     return TryGetBlockType(virtualNeighbourBlockWorldPos, out var blockType);
                 }
+
+                return false;
             }
         }
     }

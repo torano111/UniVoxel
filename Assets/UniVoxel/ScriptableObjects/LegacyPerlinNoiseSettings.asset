@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b42f9f197800704e92976255990a199, type: 3}
-  m_Name: PerlinNoiseSettings
+  m_Name: LegacyPerlinNoiseSettings
   m_EditorClassIdentifier: 
   _2dData:
     _maxGroundHeight: 60
@@ -18,11 +18,11 @@ MonoBehaviour:
     _minHeight: 0
     _heightNoiseScaler: 0.01
     _heightNoiseOctaves: 4
-    _heightNoisePersistence: 0.8
+    _heightNoisePersistence: 0.5
   _useNoise2D: 1
   _3dData:
-    _densityThreshold: 0.4
-    _densityNoiseScaler: 0.03
-    _densityNoiseOctaves: 4
+    _densityThreshold: 0.5
+    _densityNoiseScaler: 0.04
+    _densityNoiseOctaves: 3
     _densityNoisePersistence: 2
   _useNoise3D: 1
