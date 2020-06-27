@@ -37,12 +37,12 @@ namespace UniVoxel.Core
                     for (var z = _minChunkPos.z; z <= _maxChunkPos.z; z++)
                     {
                         var cPos = new Vector3Int(x, y, z);
-                        cPos *= _chunkSize;
+                        cPos *= ChunkSize;
                         var chunk = Instantiate(_chunkPrefab, cPos, Quaternion.identity);
                         chunk.name = $"Chunk_{cPos.x}_{cPos.y}_{cPos.z}";
                         chunk.transform.SetParent(this.transform);
 
-                        chunk.Initialize(this, _chunkSize, _extent, cPos);
+                        chunk.Initialize(this, ChunkSize, Extent, cPos);
                         _chunks.Add(cPos, chunk);
                     }
                 }
@@ -60,7 +60,7 @@ namespace UniVoxel.Core
             yield return null;
             
             var playerPos = _player.transform.position;
-            _player.transform.position = new Vector3(playerPos.z, playerPos.y + (_maxChunkPos.y + 1) * _chunkSize, playerPos.z);
+            _player.transform.position = new Vector3(playerPos.z, playerPos.y + (_maxChunkPos.y + 1) * ChunkSize, playerPos.z);
             _player.gameObject.SetActive(true);
         }
     }

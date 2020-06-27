@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b42f9f197800704e92976255990a199, type: 3}
+  m_Name: PerlinNoiseSettings
+  m_EditorClassIdentifier: 
+  _2dData:
+    _maxGroundHeight: 60
+    _maxStoneLayerHeight: 55
+    _minHeight: 0
+    _heightNoiseScaler: 0.01
+    _heightNoiseOctaves: 4
+    _heightNoisePersistence: 0.5
+  _3dData:
+    _densityThreshold: 0.5
+    _densityNoiseScaler: 0.04
+    _densityNoiseOctaves: 3
+    _densityNoisePersistence: 2

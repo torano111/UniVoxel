@@ -8,36 +8,10 @@ namespace UniVoxel.Core
     public class PerlinNoiseChunk : DynamicChunkBase
     {
         [SerializeField]
-        int _maxGroundHeight = 20;
+        PerlinNoiseSettings _perlinNoiseSettings;
 
-        public int MaxGroundHeight => _maxGroundHeight;
-
-        [SerializeField]
-        int _maxStoneLayerHeight = 15;
-
-        [SerializeField]
-        int _minHeight = 0;
-
-        [SerializeField]
-        double _densityThreshold = 0.5;
-
-        [SerializeField]
-        float _heightNoiseScaler = 0.1f;
-
-        [SerializeField]
-        int _heightNoiseOctaves = 4;
-
-        [SerializeField]
-        double _heightNoisePersistence = 0.5;
-
-        [SerializeField]
-        float _densityNoiseScaler = 0.1f;
-
-        [SerializeField]
-        int _densityNoiseOctaves = 4;
-
-        [SerializeField]
-        double _densityNoisePersistence = 0.5;
+        protected PerlinNoise2DData Noise2D => _perlinNoiseSettings.Noise2D;
+        protected PerlinNoise3DData Noise3D => _perlinNoiseSettings.Noise3D;
 
         [SerializeField]
         Material _material;
@@ -162,28 +136,29 @@ namespace UniVoxel.Core
         {
             blockType = BlockType.Grass;
 
-            var densityNoise = perlin.GetOctavePerlin3D(worldPos.x * _densityNoiseScaler, worldPos.y * _densityNoiseScaler, worldPos.z * _densityNoiseScaler, _densityNoiseOctaves, _densityNoisePersistence);
+            var densityNoise = perlin.GetOctavePerlin3D(worldPos.x * Noise3D.DensityNoiseScaler, worldPos.y * Noise3D.DensityNoiseScaler, worldPos.z * Noise3D.DensityNoiseScaler, Noise3D.DensityNoiseOctaves, Noise3D.DensityNoisePersistence);
 
             int currentHeight = (int)worldPos.y;
 
-            if (densityNoise <= _densityThreshold)
+            if (densityNoise <= Noise3D.DensityThreshold)
             {
                 return false;
             }
             else
             {
-                var heightNoise = perlin.GetOctavePerlin2D(worldPos.x * _heightNoiseScaler, worldPos.z * _heightNoiseScaler, _heightNoiseOctaves, _heightNoisePersistence);
-                if (currentHeight <= GetHeightThreshold(_maxStoneLayerHeight, heightNoise))
+                var heightNoise = perlin.GetOctavePerlin2D(worldPos.x * Noise2D.HeightNoiseScaler, worldPos.z * Noise2D.HeightNoiseScaler, Noise2D.HeightNoiseOctaves, Noise2D.HeightNoisePersistence);
+
+                if (currentHeight <= GetHeightThreshold(Noise2D.MaxStoneLayerHeight, heightNoise))
                 {
                     blockType = BlockType.Stone;
                     return true;
                 }
-                else if (currentHeight < GetHeightThreshold(_maxGroundHeight, heightNoise))
+                else if (currentHeight < GetHeightThreshold(Noise2D.MaxGroundHeight, heightNoise))
                 {
                     blockType = BlockType.Dirt;
                     return true;
                 }
-                else if (currentHeight == GetHeightThreshold(_maxGroundHeight, heightNoise))
+                else if (currentHeight == GetHeightThreshold(Noise2D.MaxGroundHeight, heightNoise))
                 {
                     blockType = BlockType.Grass;
                     return true;
@@ -197,7 +172,7 @@ namespace UniVoxel.Core
 
         int GetHeightThreshold(float maxHeight, double noise)
         {
-            return (int)Mathf.Lerp(_minHeight, maxHeight, (float)noise);
+            return (int)Mathf.Lerp(Noise2D.MinHeight, maxHeight, (float)noise);
         }
 
         public override bool IsNeighbourSolid(int x, int y, int z, BoxFaceSide neighbourDirection)

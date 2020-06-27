@@ -119,6 +119,10 @@ namespace UniVoxel.Utility
             return (y1 + 1) / 2;
         }
 
+        /// <summary>
+        /// Calculates Perlin Noise at x, y, z. This does not work properly with negative coordinates.
+        /// </summary>
+        /// <returns> Returns value between 0 and 1 </returns>
         double GetPerlinNoise3D(double x, double y, double z)
         {
             // If we have any repeat on, change the coordinates to their "local" repetitions

@@ -8,16 +8,19 @@ namespace UniVoxel.Core
     public class WorldBase : MonoBehaviour, IChunkHolder
     {
         [SerializeField]
-        protected int _chunkSize = 16;
+        WorldSettings _worldSettings;
 
-        [SerializeField]
-        protected float _extent = 0.5f;
+        public WorldData WorldSettingsData => _worldSettings.Data;
+        
+        protected int ChunkSize => WorldSettingsData.ChunkSize;
+
+        protected float Extent => WorldSettingsData.Extent;
 
         protected Dictionary<Vector3Int, ChunkBase> _chunks = new Dictionary<Vector3Int, ChunkBase>();
 
         public virtual bool TryGetNeighbourChunk(IChunk chunk, BoxFaceSide neighbourDirection, out IChunk neighbourChunk)
         {
-            var neighbourChunkPos = BlockUtility.GetNeighbourPosition(chunk.Position.x, chunk.Position.y, chunk.Position.z, neighbourDirection, _chunkSize);
+            var neighbourChunkPos = BlockUtility.GetNeighbourPosition(chunk.Position.x, chunk.Position.y, chunk.Position.z, neighbourDirection, ChunkSize);
 
             var result = _chunks.TryGetValue(neighbourChunkPos, out var c);
 
@@ -40,9 +43,9 @@ namespace UniVoxel.Core
 
         public virtual Vector3Int GetChunkPositionAt(Vector3 worldPos)
         {
-            var posX = Mathf.FloorToInt(worldPos.x / _chunkSize) * _chunkSize;
-            var posY = Mathf.FloorToInt(worldPos.y / _chunkSize) * _chunkSize;
-            var posZ = Mathf.FloorToInt(worldPos.z / _chunkSize) * _chunkSize;
+            var posX = Mathf.FloorToInt(worldPos.x / ChunkSize) * ChunkSize;
+            var posY = Mathf.FloorToInt(worldPos.y / ChunkSize) * ChunkSize;
+            var posZ = Mathf.FloorToInt(worldPos.z / ChunkSize) * ChunkSize;
             
             var pos = new Vector3Int(posX, posY, posZ);
             return pos;

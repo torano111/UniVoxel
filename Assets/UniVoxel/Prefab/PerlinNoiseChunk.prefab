@@ -107,16 +107,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0043e6f2b63b61f4884221281f7f7f4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxGroundHeight: 60
-  _maxStoneLayerHeight: 55
-  _minHeight: 0
-  _densityThreshold: 0.4
-  _heightNoiseScaler: 0.01
-  _heightNoiseOctaves: 4
-  _heightNoisePersistence: 0.5
-  _densityNoiseScaler: 0.04
-  _densityNoiseOctaves: 3
-  _densityNoisePersistence: 2
+  _perlinNoiseSettings: {fileID: 11400000, guid: c18435f026a5c1b4e8cb83b71210143b,
+    type: 2}
   _material: {fileID: 2100000, guid: f1a3e06e5222d1e4c8b6f67a0435baae, type: 2}
   _blockDataObject: {fileID: 11400000, guid: 76cdb663c8cc2b64987e6f64b4e1059e, type: 2}
   _singleTextureLengths: {x: 16, y: 16}
