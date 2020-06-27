@@ -81,7 +81,7 @@ namespace UniVoxel.Core
 
         protected void UpdateChunkMesh(int x, int y, int z, ref int vertexStartIndex, ref int triangleStartIndex)
         {
-            if (TryGetBlock(x, y, z, out var block) && block != null)
+            if (TryGetBlock(x, y, z, out var block) && block.IsValid)
             {
                 var nonSolidNeighbourCount = 0;
                 var iterateCount = 0;
@@ -137,14 +137,14 @@ namespace UniVoxel.Core
                 {
                     for (var z = 0; z < Size; z++)
                     {
-                        Block block = null;
+                        Block block = default(Block);
 
                         if (TryGetBlockType(GetBlockWorldPosition(Position, new Vector3Int(x, y, z)), out var blockType))
                         {
                             block = new Block(blockType);
                         }
 
-                        if (block != null)
+                        if (block.IsValid)
                         {
                             SetBlock(x, y, z, block);
                         }
@@ -206,7 +206,7 @@ namespace UniVoxel.Core
 
             if (ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
             {
-                return _blocks[neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z] != null;
+                return _blocks[neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z].IsValid;
             }
             else
             {

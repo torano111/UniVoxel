@@ -13,7 +13,7 @@ namespace UniVoxel.Core
         Right,
         Left,
     };
-    
+
     public enum BlockType
     {
         Grass,
@@ -21,12 +21,17 @@ namespace UniVoxel.Core
         Stone,
     }
 
-    public class Block
+    public struct Block
     {
         public Block(BlockType blockType)
         {
             this.BlockType = blockType;
+            IsValid = true;
         }
+
         public BlockType BlockType { get; set; }
+
+        // false by default
+        public bool IsValid { get; set; }
     }
 }

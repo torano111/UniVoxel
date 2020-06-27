@@ -45,7 +45,7 @@ namespace UniVoxel.Core
                 return true;
             }
 
-            block = null;
+            block = default(Block);
             return false;
         }
 
@@ -56,7 +56,7 @@ namespace UniVoxel.Core
 
         public virtual bool IsSolid(int x, int y, int z)
         {
-            return TryGetBlock(x, y, z, out var block) && block != null;
+            return TryGetBlock(x, y, z, out var block) && block.IsValid;
         }
 
         public virtual bool GetNeedsUpdate()
@@ -100,7 +100,7 @@ namespace UniVoxel.Core
             if (ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
             {
                 // not solid if the block is null
-                return _blocks[neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z] != null;
+                return _blocks[neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z].IsValid;
             }
             // check the neighbour block in a neighbour chunk if this chunk doesn't contain neighbour
             else
