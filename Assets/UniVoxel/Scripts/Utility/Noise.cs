@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace UniVoxel.Utility
 {
@@ -98,10 +99,12 @@ namespace UniVoxel.Utility
                 y = y % repeat;
             }
 
-            int xi = (int)x & 255;
-            int yi = (int)y & 255;
-            double xf = x - (int)x;
-            double yf = y - (int)y;
+            double floorX = Math.Floor(x);
+            double floorY = Math.Floor(y);
+            int xi = (int)floorX & 255;
+            int yi = (int)floorY & 255;
+            double xf = x - (int)floorX;
+            double yf = y - (int)floorY;
             double u = Fade(xf);
             double v = Fade(yf);
 
@@ -120,7 +123,7 @@ namespace UniVoxel.Utility
         }
 
         /// <summary>
-        /// Calculates Perlin Noise at x, y, z. This does not work properly with negative coordinates.
+        /// Calculates Perlin Noise at x, y, z.
         /// </summary>
         /// <returns> Returns value between 0 and 1 </returns>
         double GetPerlinNoise3D(double x, double y, double z)
@@ -137,12 +140,18 @@ namespace UniVoxel.Utility
             // The left bound is ( |_x_|,|_y_|,|_z_| ) and the right bound is that
             // plus 1.  Next we calculate the location (from 0.0 to 1.0) in that cube.
             // We also fade the location to smooth the result.
-            int xi = (int)x & 255;
-            int yi = (int)y & 255;
-            int zi = (int)z & 255;
-            double xf = x - (int)x;
-            double yf = y - (int)y;
-            double zf = z - (int)z;
+
+            // floor coordinates for negative values
+            double floorX = Math.Floor(x);
+            double floorY = Math.Floor(y);
+            double floorZ = Math.Floor(z);
+
+            int xi = (int)floorX & 255;
+            int yi = (int)floorY & 255;
+            int zi = (int)floorZ & 255;
+            double xf = x - (int)floorX;
+            double yf = y - (int)floorY;
+            double zf = z - (int)floorZ;
             double u = Fade(xf);
             double v = Fade(yf);
             double w = Fade(zf);
@@ -242,7 +251,9 @@ namespace UniVoxel.Utility
 
         static double Lerp(double a, double b, double t)
         {
-            return a + t * (b - a);
+            // clamp t and then lerp
+            // not work without clamp if coordinates are negative
+            return a + Math.Min(Math.Max(0, t), 1) * (b - a);
         }
     }
 }
