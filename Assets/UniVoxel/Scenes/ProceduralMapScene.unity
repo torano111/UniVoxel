@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 0
+  m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -128,20 +128,30 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5964182197778504211, guid: fdddf4e85b0feac439384cbde1c87003,
+        type: 3}
+      propertyPath: m_Height
+      value: 1.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5964182197778504211, guid: fdddf4e85b0feac439384cbde1c87003,
+        type: 3}
+      propertyPath: m_Radius
+      value: 0.4
+      objectReference: {fileID: 0}
     - target: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 15.324345
       objectReference: {fileID: 0}
     - target: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 36.48
       objectReference: {fileID: 0}
     - target: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 19.821272
       objectReference: {fileID: 0}
     - target: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
         type: 3}
@@ -151,7 +161,7 @@ PrefabInstance:
     - target: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.9999144
       objectReference: {fileID: 0}
     - target: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
         type: 3}
@@ -161,7 +171,7 @@ PrefabInstance:
     - target: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.013089641
       objectReference: {fileID: 0}
     - target: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
         type: 3}
@@ -328,6 +338,7 @@ MonoBehaviour:
   _chunkPrefab: {fileID: 5130475949019091047, guid: 4c6401c07255b0e4bb269ba9ba41d545,
     type: 3}
   _player: {fileID: 1120020084}
+  _numChunksToSpawnInAFrame: 4
 --- !u!4 &1202046512
 Transform:
   m_ObjectHideFlags: 0

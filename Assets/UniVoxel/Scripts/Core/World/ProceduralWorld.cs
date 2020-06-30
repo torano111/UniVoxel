@@ -18,20 +18,64 @@ namespace UniVoxel.Core
         [SerializeField]
         FirstPersonController _player;
 
+        bool _isInitialized = false;
+
+        Queue<ChunkBase> _chunksToDestroy = new Queue<ChunkBase>();
+        Queue<Vector3Int> _chunkPositionsToSpawn = new Queue<Vector3Int>();
+
+        [SerializeField]
+        int _numChunksToSpawnInAFrame = 4;
+
+        void GetHighestSolidBlockIndices(float worldPosX, float worldPosZ, out ChunkBase chunk, out Vector3Int blockIndices)
+        {
+            var worldPosY = _player.transform.position.y + _ranges.y * ChunkSize;
+            var worldPos = new Vector3(worldPosX, worldPosY, worldPosZ);
+
+            while (true)
+            {
+                var cPos = GetChunkPositionAt(worldPos);
+
+                if (_chunks.TryGetValue(cPos, out var c))
+                {
+                    var diff = worldPos - cPos;
+                    var x = Mathf.FloorToInt(diff.x / (c.Extent * 2f));
+                    var z = Mathf.FloorToInt(diff.z / (c.Extent * 2f));
+
+                    // check vertical blocks at (x, z) in the chunk
+                    for (var y = c.Size - 1; y >= 0; y--)
+                    {
+                        if (c.IsSolid(x, y, z))
+                        {
+                            blockIndices = new Vector3Int(x, y, z);
+                            chunk = c;
+                            return;
+                        }
+                    }
+                }
+
+                worldPos.y -= ChunkSize;
+
+                if (worldPos.y < _player.transform.position.y - _ranges.y * ChunkSize)
+                {
+                    throw new System.InvalidOperationException("cannot find the chunk");
+                }
+            }
+        }
+
         void Start()
         {
             _player.gameObject.SetActive(false);
             InitChunks();
-            StartCoroutine("BuildChunks");
+            StartCoroutine("BuildInitialChunks");
         }
 
         void InitChunks()
         {
-            for (var x = 0; x <= 2 * _ranges.x; x++)
+            for (var y = 0; y <= 2 * _ranges.y; y++)
             {
-                for (var y = 0; y <= 2 * _ranges.y; y++)
+                for (var z = 0; z <= 2 * _ranges.z; z++)
                 {
-                    for (var z = 0; z <= 2 * _ranges.z; z++)
+                    for (var x = 0; x <= 2 * _ranges.x; x++)
                     {
                         // 0, -1, 1, -2, 2, ... -_ranges.x, _ranges.x
                         var posX = x == 0 ? x : (x % 2 == 1 ? -(x / 2 + 1) : x / 2);
@@ -59,15 +103,15 @@ namespace UniVoxel.Core
             chunk.Initialize(this, ChunkSize, Extent, cPos);
             _chunks.Add(cPos, chunk);
         }
-        
-        IEnumerator BuildChunks()
+
+        IEnumerator BuildInitialChunks()
         {
             // build chunk at from the player position to distant positions
-            for (var x = 0; x <= 2 * _ranges.x; x++)
+            for (var y = 0; y <= 2 * _ranges.y; y++)
             {
-                for (var y = 0; y <= 2 * _ranges.y; y++)
+                for (var z = 0; z <= 2 * _ranges.z; z++)
                 {
-                    for (var z = 0; z <= 2 * _ranges.z; z++)
+                    for (var x = 0; x <= 2 * _ranges.x; x++)
                     {
                         // 0, -1, 1, -2, 2, ... -_ranges.x, _ranges.x
                         var posX = x == 0 ? x : (x % 2 == 1 ? -(x / 2 + 1) : x / 2);
@@ -95,9 +139,88 @@ namespace UniVoxel.Core
 
             yield return null;
 
+            SpawnPlayer();
+
+            _isInitialized = true;
+        }
+
+        void SpawnPlayer()
+        {
             var playerPos = _player.transform.position;
-            _player.transform.position = new Vector3(playerPos.z, playerPos.y + (_ranges.y + 1) * ChunkSize, playerPos.z);
+            GetHighestSolidBlockIndices(playerPos.x, playerPos.z, out var chunk, out var blockIndices);
+            var spawnPos = new Vector3(playerPos.x, chunk.Position.y + blockIndices.y * chunk.Extent * 2, playerPos.z);
+            spawnPos.y += 3f;
+
+            Debug.Log($"SpawnPos: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
+
+            _player.transform.position = spawnPos;
             _player.gameObject.SetActive(true);
+        }
+
+        void Update()
+        {
+            if (!_isInitialized)
+            {
+                return;
+            }
+        }
+
+        bool IsInRange(Vector3 chunkPos0, Vector3 chunkPos1)
+        {
+            var diffX = Mathf.Abs(chunkPos0.x - chunkPos1.x);
+            var diffY = Mathf.Abs(chunkPos0.y - chunkPos1.y);
+            var diffZ = Mathf.Abs(chunkPos0.z - chunkPos1.z);
+
+            if (diffX > _ranges.x * ChunkSize || diffY > _ranges.y * ChunkSize || diffZ > _ranges.z * ChunkSize)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        void CheckActiveChunks()
+        {
+            if (_chunksToDestroy.Count == 0)
+            {
+                var playerChunkPos = GetChunkPositionAt(_player.transform.position);
+                foreach (var chunk in _chunks.Values)
+                {
+                    if (!IsInRange(playerChunkPos, chunk.Position))
+                    {
+                        _chunksToDestroy.Enqueue(chunk);
+                    }
+                }
+            }
+
+            if (_chunkPositionsToSpawn.Count == 0)
+            {
+                for (var y = 0; y <= 2 * _ranges.y; y++)
+                {
+                    for (var z = 0; z <= 2 * _ranges.z; z++)
+                    {
+                        for (var x = 0; x <= 2 * _ranges.x; x++)
+                        {
+                            // 0, -1, 1, -2, 2, ... -_ranges.x, _ranges.x
+                            var posX = x == 0 ? x : (x % 2 == 1 ? -(x / 2 + 1) : x / 2);
+
+                            // 0, -1, 1, -2, 2, ... -_ranges.z, _ranges.z
+                            var posZ = z == 0 ? z : (z % 2 == 1 ? -(z / 2 + 1) : z / 2);
+
+                            // 0, -1, 1, -2, 2, ... -_ranges.y, _ranges.y
+                            var posY = y == 0 ? y : (y % 2 == 1 ? -(y / 2 + 1) : y / 2);
+
+                            var chunkWorldPos = _player.transform.position + new Vector3(posX, posY, posZ) * ChunkSize;
+                            var cPos = GetChunkPositionAt(chunkWorldPos);
+
+                            if (!_chunks.ContainsKey(cPos))
+                            {
+                                _chunkPositionsToSpawn.Enqueue(cPos);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
