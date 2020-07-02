@@ -338,7 +338,7 @@ MonoBehaviour:
   _chunkPrefab: {fileID: 5130475949019091047, guid: 4c6401c07255b0e4bb269ba9ba41d545,
     type: 3}
   _player: {fileID: 1120020084}
-  _numChunksToSpawnInAFrame: 4
+  _numChunksToSpawnInAFrame: 2
 --- !u!4 &1202046512
 Transform:
   m_ObjectHideFlags: 0

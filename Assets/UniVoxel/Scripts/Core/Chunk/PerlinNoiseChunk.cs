@@ -103,6 +103,13 @@ namespace UniVoxel.Core
         {
             _meshRenderer.material = _material;
 
+            // InitBlocks();
+        }
+
+        public override void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)
+        {
+            base.Initialize(chunkHolder, chunkSize, extent, position);
+
             InitBlocks();
         }
 

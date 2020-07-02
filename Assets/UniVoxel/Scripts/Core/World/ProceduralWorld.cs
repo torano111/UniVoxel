@@ -93,7 +93,7 @@ namespace UniVoxel.Core
             }
         }
 
-        void InitChunk(Vector3 worldPos)
+        ChunkBase InitChunk(Vector3 worldPos)
         {
             var cPos = GetChunkPositionAt(worldPos);
             var chunk = Instantiate(_chunkPrefab, cPos, Quaternion.identity);
@@ -102,6 +102,8 @@ namespace UniVoxel.Core
 
             chunk.Initialize(this, ChunkSize, Extent, cPos);
             _chunks.Add(cPos, chunk);
+
+            return chunk;
         }
 
         IEnumerator BuildInitialChunks()
@@ -163,6 +165,15 @@ namespace UniVoxel.Core
             {
                 return;
             }
+
+            CheckActiveChunks();
+            RemoveInactiveChunks();
+            SpawnChunksInRange();
+
+            // if (_chunkPositionsToSpawn.Count > 0)
+            // {
+            //     StartCoroutine("SpawnChunksInRangeCoroutine");
+            // }
         }
 
         bool IsInRange(Vector3 chunkPos0, Vector3 chunkPos1)
@@ -191,6 +202,7 @@ namespace UniVoxel.Core
                         _chunksToDestroy.Enqueue(chunk);
                     }
                 }
+
             }
 
             if (_chunkPositionsToSpawn.Count == 0)
@@ -221,6 +233,61 @@ namespace UniVoxel.Core
                     }
                 }
             }
+
+            Debug.Log($"chunksToDestroy: {_chunksToDestroy.Count}, chunkPositionsToSpawn: {_chunkPositionsToSpawn.Count}");
+        }
+
+        void RemoveInactiveChunks()
+        {
+            while (_chunksToDestroy.Count > 0)
+            {
+                var chunk = _chunksToDestroy.Dequeue();
+
+                _chunks.Remove(chunk.Position);
+                Destroy(chunk.gameObject);
+            }
+        }
+
+        void SpawnChunksInRange()
+        {
+            var count = 0;
+            while (_chunkPositionsToSpawn.Count > 0 && count < _numChunksToSpawnInAFrame)
+            {
+                var cPos = _chunkPositionsToSpawn.Dequeue();
+
+                if (!_chunks.ContainsKey(cPos))
+                {
+                    var chunk = InitChunk(cPos);
+                    chunk.MarkUpdate();
+                    count++;
+                }
+            }
+
+            Debug.Log($"{count} chunks spawned");
+        }
+
+        IEnumerator SpawnChunksInRangeCoroutine()
+        {
+            var count = 0;
+            while (_chunkPositionsToSpawn.Count > 0)
+            {
+                if (count < _numChunksToSpawnInAFrame)
+                {
+                    yield return null;
+                    count = 0;
+                }
+
+                var cPos = _chunkPositionsToSpawn.Dequeue();
+
+                if (!_chunks.ContainsKey(cPos))
+                {
+                    var chunk = InitChunk(cPos);
+                    chunk.MarkUpdate();
+                    count++;
+                }
+            }
+
+            Debug.Log($"{count} chunks spawned");
         }
     }
 }
