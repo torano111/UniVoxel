@@ -13,11 +13,11 @@ namespace UniVoxel.Core
 
         protected Mesh _mesh;
 
-        protected Vector3[] _vertices;
-        protected int[] _triangles;
-        protected Vector2[] _uv;
-        protected Vector3[] _normals;
-        protected Vector4[] _tangents;
+        protected List<Vector3> _vertices = new List<Vector3>();
+        protected List<int> _triangles = new List<int>();
+        protected List<Vector2> _uv = new List<Vector2>();
+        protected List<Vector3> _normals = new List<Vector3>();
+        protected List<Vector4> _tangents = new List<Vector4>();
 
         protected override void Awake()
         {
@@ -42,22 +42,22 @@ namespace UniVoxel.Core
         {
             _mesh.Clear();
 
-            _mesh.vertices = this._vertices;
-            _mesh.uv = this._uv;
-            _mesh.normals = this._normals;
-            _mesh.tangents = this._tangents;
-            _mesh.triangles = this._triangles;
+            _mesh.SetVertices(_vertices);
+            _mesh.SetUVs(0, _uv);
+            _mesh.SetNormals(_normals);
+            _mesh.SetTangents(_tangents);
+            _mesh.SetTriangles(_triangles, 0);
 
             _mesh.RecalculateBounds();
         }
 
         protected virtual void ClearMeshProperties()
         {
-            _vertices = null;
-            _triangles = null;
-            _uv = null;
-            _normals = null;
-            _tangents = null;
+            _vertices.Clear();
+            _triangles.Clear();
+            _uv.Clear();
+            _normals.Clear();
+            _tangents.Clear();
         }
 
         protected virtual void UpdateCollider()

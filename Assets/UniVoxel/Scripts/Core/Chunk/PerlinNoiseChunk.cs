@@ -42,21 +42,19 @@ namespace UniVoxel.Core
 
         protected override void UpdateMeshProperties()
         {
-            var vertexStartIndex = 0;
-            var triangleStartIndex = 0;
             for (var x = 0; x < Size; x++)
             {
                 for (var y = 0; y < Size; y++)
                 {
                     for (var z = 0; z < Size; z++)
                     {
-                        UpdateChunkMesh(x, y, z, ref vertexStartIndex, ref triangleStartIndex);
+                        UpdateChunkMesh(x, y, z);
                     }
                 }
             }
         }
 
-        protected void UpdateChunkMesh(int x, int y, int z, ref int vertexStartIndex, ref int triangleStartIndex)
+        protected void UpdateChunkMesh(int x, int y, int z)
         {
             if (TryGetBlock(x, y, z, out var block) && block.IsValid)
             {
@@ -79,8 +77,6 @@ namespace UniVoxel.Core
 
                 if (nonSolidNeighbourCount > 0)
                 {
-                    VoxelUtility.ReserveMeshForFaces(nonSolidNeighbourCount, ref _vertices, ref _triangles, ref _uv, ref _normals, ref _tangents);
-
                     iterateCount = 0;
                     foreach (BoxFaceSide side in System.Enum.GetValues(typeof(BoxFaceSide)))
                     {
@@ -88,9 +84,7 @@ namespace UniVoxel.Core
                         if (isNotSolid > 0)
                         {
                             var center = new Vector3(x, y, z) * Extent * 2.0f;
-                            VoxelUtility.AddMeshForBoxFace(side, center, Extent, _vertices, _triangles, _uv, GetUVCoord00(block.BlockType, side), GetUVCoord11(block.BlockType, side), _normals, _tangents, vertexStartIndex, triangleStartIndex);
-                            vertexStartIndex += VoxelUtility.GetFaceVertexLength();
-                            triangleStartIndex += VoxelUtility.GetFaceTriangleLength();
+                            VoxelUtility.AddMeshForBoxFace(side, center, Extent, _vertices, _triangles, _uv, GetUVCoord00(block.BlockType, side), GetUVCoord11(block.BlockType, side), _normals, _tangents);
                         }
 
                         iterateCount++;
@@ -102,8 +96,6 @@ namespace UniVoxel.Core
         void Start()
         {
             _meshRenderer.material = _material;
-
-            // InitBlocks();
         }
 
         public override void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)

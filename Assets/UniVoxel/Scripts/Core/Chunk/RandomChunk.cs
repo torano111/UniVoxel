@@ -114,8 +114,6 @@ namespace UniVoxel.Core
 
                 if (nonSolidNeighbourCount > 0)
                 {
-                    VoxelUtility.ReserveMeshForFaces(nonSolidNeighbourCount, ref _vertices, ref _triangles, ref _uv, ref _normals, ref _tangents);
-
                     iterateCount = 0;
                     foreach (BoxFaceSide side in System.Enum.GetValues(typeof(BoxFaceSide)))
                     {
@@ -123,7 +121,7 @@ namespace UniVoxel.Core
                         if (isNotSolid > 0)
                         {
                             var center = new Vector3(x, y, z) * Extent * 2.0f;
-                            VoxelUtility.AddMeshForBoxFace(side, center, Extent, _vertices, _triangles, _uv, GetUVCoord00(block.BlockType, side), GetUVCoord11(block.BlockType, side), _normals, _tangents, vertexStartIndex, triangleStartIndex);
+                            VoxelUtility.AddMeshForBoxFace(side, center, Extent, _vertices, _triangles, _uv, GetUVCoord00(block.BlockType, side), GetUVCoord11(block.BlockType, side), _normals, _tangents);
                             vertexStartIndex += VoxelUtility.GetFaceVertexLength();
                             triangleStartIndex += VoxelUtility.GetFaceTriangleLength();
                         }

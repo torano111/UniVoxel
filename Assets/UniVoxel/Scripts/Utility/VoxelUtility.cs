@@ -120,7 +120,7 @@ namespace UniVoxel.Utility
             {
                 case BoxFaceSide.Front:
                     vertices[startIndex] = Center + new Vector3(Extent, -Extent, Extent);
-                    vertices[startIndex + 1] = Center + new Vector3(-Extent,- Extent, Extent);
+                    vertices[startIndex + 1] = Center + new Vector3(-Extent, -Extent, Extent);
                     vertices[startIndex + 2] = Center + new Vector3(Extent, Extent, Extent);
                     vertices[startIndex + 3] = Center + new Vector3(-Extent, Extent, Extent);
                     break;
@@ -158,6 +158,52 @@ namespace UniVoxel.Utility
         }
 
 
+        static void AddVerticesForBoxFace(BoxFaceSide FaceSide, Vector3 Center, float Extent, List<Vector3> vertices)
+        {
+            UnityEngine.Assertions.Assert.IsTrue(vertices != null);
+
+            switch (FaceSide)
+            {
+                case BoxFaceSide.Front:
+                    vertices.Add(Center + new Vector3(Extent, -Extent, Extent));
+                    vertices.Add(Center + new Vector3(-Extent, -Extent, Extent));
+                    vertices.Add(Center + new Vector3(Extent, Extent, Extent));
+                    vertices.Add(Center + new Vector3(-Extent, Extent, Extent));
+                    break;
+                case BoxFaceSide.Back:
+                    vertices.Add(Center + new Vector3(-Extent, -Extent, -Extent));
+                    vertices.Add(Center + new Vector3(Extent, -Extent, -Extent));
+                    vertices.Add(Center + new Vector3(-Extent, Extent, -Extent));
+                    vertices.Add(Center + new Vector3(Extent, Extent, -Extent));
+                    break;
+                case BoxFaceSide.Top:
+                    vertices.Add(Center + new Vector3(-Extent, Extent, -Extent));
+                    vertices.Add(Center + new Vector3(Extent, Extent, -Extent));
+                    vertices.Add(Center + new Vector3(-Extent, Extent, Extent));
+                    vertices.Add(Center + new Vector3(Extent, Extent, Extent));
+                    break;
+                case BoxFaceSide.Bottom:
+                    vertices.Add(Center + new Vector3(Extent, -Extent, -Extent));
+                    vertices.Add(Center + new Vector3(-Extent, -Extent, -Extent));
+                    vertices.Add(Center + new Vector3(Extent, -Extent, Extent));
+                    vertices.Add(Center + new Vector3(-Extent, -Extent, Extent));
+                    break;
+                case BoxFaceSide.Right:
+                    vertices.Add(Center + new Vector3(Extent, -Extent, -Extent));
+                    vertices.Add(Center + new Vector3(Extent, -Extent, Extent));
+                    vertices.Add(Center + new Vector3(Extent, Extent, -Extent));
+                    vertices.Add(Center + new Vector3(Extent, Extent, Extent));
+                    break;
+                case BoxFaceSide.Left:
+                    vertices.Add(Center + new Vector3(-Extent, -Extent, Extent));
+                    vertices.Add(Center + new Vector3(-Extent, -Extent, -Extent));
+                    vertices.Add(Center + new Vector3(-Extent, Extent, Extent));
+                    vertices.Add(Center + new Vector3(-Extent, Extent, -Extent));
+                    break;
+            }
+        }
+
+
         static void AddTrianglesForBoxFace(BoxFaceSide FaceSide, int[] triangles, int vertexStartIndex, int triangleStartIndex)
         {
             UnityEngine.Assertions.Assert.IsTrue(triangles != null);
@@ -184,6 +230,31 @@ namespace UniVoxel.Utility
             }
         }
 
+        static void AddTrianglesForBoxFace(BoxFaceSide FaceSide, List<int>triangles, int vertexStartIndex)
+        {
+            UnityEngine.Assertions.Assert.IsTrue(triangles != null);
+
+            switch (FaceSide)
+            {
+                case BoxFaceSide.Front:
+                case BoxFaceSide.Back:
+                case BoxFaceSide.Top:
+                case BoxFaceSide.Bottom:
+                case BoxFaceSide.Right:
+                case BoxFaceSide.Left:
+                    // up side triangle
+                    triangles.Add( vertexStartIndex);
+                    triangles.Add( vertexStartIndex + 2);
+                    triangles.Add( vertexStartIndex + 1);
+
+                    // down side triangle
+                    triangles.Add( vertexStartIndex + 2);
+                    triangles.Add( vertexStartIndex + 3);
+                    triangles.Add( vertexStartIndex + 1);
+                    break;
+            }
+        }
+
         static void AddUVForBoxFace(BoxFaceSide FaceSide, Vector2[] uv0, Vector2 UVCoord00, Vector2 UVCoord11, int startIndex)
         {
             UnityEngine.Assertions.Assert.IsTrue(uv0 != null);
@@ -201,6 +272,26 @@ namespace UniVoxel.Utility
                     uv0[startIndex + 1] = new Vector2(UVCoord11.x, UVCoord00.y);
                     uv0[startIndex + 2] = new Vector2(UVCoord00.x, UVCoord11.y);
                     uv0[startIndex + 3] = new Vector2(UVCoord11.x, UVCoord11.y);
+                    break;
+            }
+        }
+
+        static void AddUVForBoxFace(BoxFaceSide FaceSide, List<Vector2> uv0, Vector2 UVCoord00, Vector2 UVCoord11)
+        {
+            UnityEngine.Assertions.Assert.IsTrue(uv0 != null);
+
+            switch (FaceSide)
+            {
+                case BoxFaceSide.Front:
+                case BoxFaceSide.Back:
+                case BoxFaceSide.Top:
+                case BoxFaceSide.Bottom:
+                case BoxFaceSide.Right:
+                case BoxFaceSide.Left:
+                    uv0.Add( new Vector2(UVCoord00.x, UVCoord00.y));
+                    uv0.Add( new Vector2(UVCoord11.x, UVCoord00.y));
+                    uv0.Add( new Vector2(UVCoord00.x, UVCoord11.y));
+                    uv0.Add( new Vector2(UVCoord11.x, UVCoord11.y));
                     break;
             }
         }
@@ -241,6 +332,41 @@ namespace UniVoxel.Utility
             }
         }
 
+        static void AddNormalsForBoxFace(BoxFaceSide FaceSide, List<Vector3> normals)
+        {
+            UnityEngine.Assertions.Assert.IsTrue(normals != null);
+
+            Vector3 n;
+            switch (FaceSide)
+            {
+                case BoxFaceSide.Front:
+                    n = Vector3.forward;
+                    break;
+                case BoxFaceSide.Back:
+                    n = Vector3.back;
+                    break;
+                case BoxFaceSide.Top:
+                    n = Vector3.up;
+                    break;
+                case BoxFaceSide.Bottom:
+                    n = Vector3.down;
+                    break;
+                case BoxFaceSide.Right:
+                    n = Vector3.right;
+                    break;
+                case BoxFaceSide.Left:
+                    n = Vector3.left;
+                    break;
+                default:
+                    throw new System.ArgumentException();
+            }
+
+            for (int i = 0; i < FaceVertexLength; i++)
+            {
+                normals.Add(n);
+            }
+        }
+
         static void AddTangentsForBoxFace(BoxFaceSide FaceSide, Vector4[] tangents, int startIndex)
         {
             UnityEngine.Assertions.Assert.IsTrue(tangents != null);
@@ -277,6 +403,41 @@ namespace UniVoxel.Utility
             }
         }
 
+        static void AddTangentsForBoxFace(BoxFaceSide FaceSide, List<Vector4> tangents)
+        {
+            UnityEngine.Assertions.Assert.IsTrue(tangents != null);
+
+            Vector4 t;
+            switch (FaceSide)
+            {
+                case BoxFaceSide.Front:
+                    t = new Vector4(1, 0, 0, 1);
+                    break;
+                case BoxFaceSide.Back:
+                    t = new Vector4(-1, 0, 0, 1);
+                    break;
+                case BoxFaceSide.Top:
+                    t = new Vector4(-1, 0, 0, 1);
+                    break;
+                case BoxFaceSide.Bottom:
+                    t = new Vector4(1, 0, 0, 1);
+                    break;
+                case BoxFaceSide.Right:
+                    t = new Vector4(0, 0, -1, 1);
+                    break;
+                case BoxFaceSide.Left:
+                    t = new Vector4(0, 0, 1, 1);
+                    break;
+                default:
+                    throw new System.ArgumentException();
+            }
+
+            for (int i = 0; i < FaceVertexLength; i++)
+            {
+                tangents.Add(t);
+            }
+        }
+
         public static void AddMeshForBoxFace(BoxFaceSide FaceSide, Vector3 Center, float Extent, Vector3[] vertices, int[] triangles, Vector2[] uv0, Vector2 UVCoord00, Vector2 UVCoord11, Vector3[] normals, Vector4[] tangents, int vertexStartIndex, int triangleStartIndex)
         {
             AddVerticesForBoxFace(FaceSide, Center, Extent, vertices, vertexStartIndex);
@@ -284,6 +445,21 @@ namespace UniVoxel.Utility
             AddUVForBoxFace(FaceSide, uv0, UVCoord00, UVCoord11, vertexStartIndex);
             AddNormalsForBoxFace(FaceSide, normals, vertexStartIndex);
             AddTangentsForBoxFace(FaceSide, tangents, vertexStartIndex);
+        }
+
+        public static void AddMeshForBoxFace(BoxFaceSide FaceSide, Vector3 Center, float Extent, List<Vector3> vertices, List<int> triangles, List<Vector2> uv0, Vector2 UVCoord00, Vector2 UVCoord11, List<Vector3> normals, List<Vector4> tangents, int vertexStartIndex)
+        {
+            AddVerticesForBoxFace(FaceSide, Center, Extent, vertices);
+            AddTrianglesForBoxFace(FaceSide, triangles, vertexStartIndex);
+            AddUVForBoxFace(FaceSide, uv0, UVCoord00, UVCoord11);
+            AddNormalsForBoxFace(FaceSide, normals);
+            AddTangentsForBoxFace(FaceSide, tangents);
+        }
+
+        public static void AddMeshForBoxFace(BoxFaceSide FaceSide, Vector3 Center, float Extent, List<Vector3> vertices, List<int> triangles, List<Vector2> uv0, Vector2 UVCoord00, Vector2 UVCoord11, List<Vector3> normals, List<Vector4> tangents)
+        {
+            var numVertex = vertices.Count;
+            AddMeshForBoxFace(FaceSide, Center, Extent, vertices, triangles, uv0, UVCoord00, UVCoord11, normals, tangents, numVertex);
         }
 
         public static void ReserveAndAddMeshForBoxFace(BoxFaceSide FaceSide, Vector3 Center, float Extent, ref Vector3[] vertices, ref int[] triangles, ref Vector2[] uv0, Vector2 UVCoord00, Vector2 UVCoord11, ref Vector3[] normals, ref Vector4[] tangents)
@@ -301,6 +477,14 @@ namespace UniVoxel.Utility
                 AddMeshForBoxFace(side, Center, Extent, vertices, triangles, uv0, UVCoord00, UVCoord11, normals, tangents, vertexStartIndex, triangleStartIndex);
                 vertexStartIndex += FaceVertexLength;
                 triangleStartIndex += FaceTriangleLength;
+            }
+        }
+
+        public static void AddBox(Vector3 Center, float Extent, List<Vector3> vertices, List<int> triangles, List<Vector2> uv0, Vector2 UVCoord00, Vector2 UVCoord11, List<Vector3> normals, List<Vector4> tangents)
+        {
+            foreach (BoxFaceSide side in System.Enum.GetValues(typeof(BoxFaceSide)))
+            {
+                AddMeshForBoxFace(side, Center, Extent, vertices, triangles, uv0, UVCoord00, UVCoord11, normals, tangents);
             }
         }
 
