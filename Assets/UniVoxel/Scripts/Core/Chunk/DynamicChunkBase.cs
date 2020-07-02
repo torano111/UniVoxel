@@ -7,6 +7,7 @@ namespace UniVoxel.Core
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
     public abstract class DynamicChunkBase : ChunkBase
     {
+        protected static BoxFaceSide[] FaceSides = new BoxFaceSide[] { BoxFaceSide.Front, BoxFaceSide.Back, BoxFaceSide.Top, BoxFaceSide.Bottom, BoxFaceSide.Right, BoxFaceSide.Left };
         protected MeshFilter _meshFilter;
         protected MeshRenderer _meshRenderer;
         protected MeshCollider _meshCollider;
@@ -73,7 +74,7 @@ namespace UniVoxel.Core
             UpdateMeshProperties();
 
             UpdateRenderer();
-            
+
             if (updatesCollider)
             {
                 UpdateCollider();

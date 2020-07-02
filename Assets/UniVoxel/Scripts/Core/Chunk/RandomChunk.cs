@@ -101,7 +101,7 @@ namespace UniVoxel.Core
                 // 1 if NOT solid 
                 var notSolidFrag = 0;
                 
-                foreach (BoxFaceSide side in System.Enum.GetValues(typeof(BoxFaceSide)))
+                foreach (BoxFaceSide side in FaceSides)
                 {
                     if (!IsNeighbourSolid(x, y, z, side))
                     {
@@ -115,7 +115,7 @@ namespace UniVoxel.Core
                 if (nonSolidNeighbourCount > 0)
                 {
                     iterateCount = 0;
-                    foreach (BoxFaceSide side in System.Enum.GetValues(typeof(BoxFaceSide)))
+                    foreach (BoxFaceSide side in FaceSides)
                     {
                         var isNotSolid = notSolidFrag & (1 << iterateCount);
                         if (isNotSolid > 0)
