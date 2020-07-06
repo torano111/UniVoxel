@@ -153,7 +153,7 @@ namespace UniVoxel.Core
             var spawnPos = new Vector3(playerPos.x, chunk.Position.y + blockIndices.y * chunk.Extent * 2, playerPos.z);
             spawnPos.y += 3f;
 
-            Debug.Log($"SpawnPos: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
+            // Debug.Log($"SpawnPos: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
 
             _player.transform.position = spawnPos;
             _player.gameObject.SetActive(true);
@@ -234,7 +234,7 @@ namespace UniVoxel.Core
                 }
             }
 
-            Debug.Log($"chunksToDestroy: {_chunksToDestroy.Count}, chunkPositionsToSpawn: {_chunkPositionsToSpawn.Count}");
+            // Debug.Log($"chunksToDestroy: {_chunksToDestroy.Count}, chunkPositionsToSpawn: {_chunkPositionsToSpawn.Count}");
         }
 
         void RemoveInactiveChunks()
@@ -263,7 +263,7 @@ namespace UniVoxel.Core
                 }
             }
 
-            Debug.Log($"{count} chunks spawned");
+            // Debug.Log($"{count} chunks spawned");
         }
 
         IEnumerator SpawnChunksInRangeCoroutine()
@@ -287,7 +287,7 @@ namespace UniVoxel.Core
                 }
             }
 
-            Debug.Log($"{count} chunks spawned");
+            // Debug.Log($"{count} chunks spawned");
         }
     }
 }
