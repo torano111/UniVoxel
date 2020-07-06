@@ -15,7 +15,7 @@ namespace UniVoxel.Core
         public int Size { get; private set; }
         public int GetChunkSize() => Size;
 
-        protected Block[,,] _blocks;
+        protected Block[] _blocks;
         protected IChunkHolder _chunkHolder;
 
         bool _needsUpdate;
@@ -31,7 +31,7 @@ namespace UniVoxel.Core
             this.Extent = extent;
             this.Position = position;
 
-            this._blocks = new Block[Size, Size, Size];
+            this._blocks = new Block[Size * Size * Size];
 
             _isInitialized.Value = true;
         }
@@ -40,7 +40,8 @@ namespace UniVoxel.Core
         {
             if (ContainBlock(x, y, z))
             {
-                block = _blocks[x, y, z];
+                var index = MathUtility.GetLinearIndexFrom3Points(x, y, z, Size, Size);
+                block = _blocks[index];
 
                 return true;
             }
@@ -73,7 +74,8 @@ namespace UniVoxel.Core
         {
             if (ContainBlock(x, y, z))
             {
-                _blocks[x, y, z] = block;
+                var index = MathUtility.GetLinearIndexFrom3Points(x, y, z, Size, Size);
+                _blocks[index] = block;
             }
             else
             {
@@ -97,10 +99,10 @@ namespace UniVoxel.Core
         {
             var neighbourBlockIndices = BlockUtility.GetNeighbourPosition(x, y, z, neighbourDirection, 1);
 
-            if (ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
+            if (TryGetBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z, out var block))
             {
                 // not solid if the block is null
-                return _blocks[neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z].IsValid;
+                return block.IsValid;
             }
             // check the neighbour block in a neighbour chunk if this chunk doesn't contain neighbour
             else
