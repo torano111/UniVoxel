@@ -9,17 +9,11 @@ namespace UniVoxel.Utility
     /// Improved Perlin Noise
     /// <see href="https://adrianb.io/2014/08/09/perlinnoise.html"> Understanding Perlin Noise </see>
     /// </summary>
-    public class Perlin
+    public static class Perlin
     {
+        public static int repeat = -1;
 
-        public int repeat;
-
-        public Perlin(int repeat = -1)
-        {
-            this.repeat = repeat;
-        }
-
-        public double GetOctavePerlin2D(double x, double z, int octaves, double persistence)
+        public static double GetOctavePerlin2D(double x, double z, int octaves, double persistence)
         {
             double total = 0;
             double frequency = 1;
@@ -40,7 +34,7 @@ namespace UniVoxel.Utility
             return total / maxValue;
         }
 
-        public double GetOctavePerlin3D(double x, double y, double z, int octaves, double persistence)
+        public static double GetOctavePerlin3D(double x, double y, double z, int octaves, double persistence)
         {
             double total = 0;
             double frequency = 1;
@@ -90,7 +84,7 @@ namespace UniVoxel.Utility
             }
         }
 
-        double GetPerlinNoise2D(double x, double y)
+        static double GetPerlinNoise2D(double x, double y)
         {
             // If we have any repeat on, change the coordinates to their "local" repetitions
             if (repeat > 0)
@@ -126,7 +120,7 @@ namespace UniVoxel.Utility
         /// Calculates Perlin Noise at x, y, z.
         /// </summary>
         /// <returns> Returns value between 0 and 1 </returns>
-        double GetPerlinNoise3D(double x, double y, double z)
+        static double GetPerlinNoise3D(double x, double y, double z)
         {
             // If we have any repeat on, change the coordinates to their "local" repetitions
             if (repeat > 0)
@@ -184,7 +178,7 @@ namespace UniVoxel.Utility
             return (Lerp(y1, y2, w) + 1) / 2;
         }
 
-        int Inc(int num)
+        static int Inc(int num)
         {
             num++;
             if (repeat > 0) num %= repeat;

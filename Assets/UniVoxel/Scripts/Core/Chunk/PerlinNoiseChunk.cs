@@ -28,8 +28,6 @@ namespace UniVoxel.Core
         [SerializeField]
         bool _accurateSolidCheck = true;
 
-        Perlin perlin = new Perlin();
-
         public Vector2 GetUVCoord00(BlockType blockType, BoxFaceSide side)
         {
             return _blockDataObject.GetUVCoord00(blockType, side, _singleTextureLengths, _textureAtlasLengths);
@@ -179,13 +177,13 @@ namespace UniVoxel.Core
         public double CalculateNoise2D(Vector3 worldPos)
         {
             // make the coordinates positive since calculating Perlin Noise may not work correctly with negative values.
-            return perlin.GetOctavePerlin2D(worldPos.x * Noise2D.HeightNoiseScaler, worldPos.z * Noise2D.HeightNoiseScaler, Noise2D.HeightNoiseOctaves, Noise2D.HeightNoisePersistence);
+            return Perlin.GetOctavePerlin2D(worldPos.x * Noise2D.HeightNoiseScaler, worldPos.z * Noise2D.HeightNoiseScaler, Noise2D.HeightNoiseOctaves, Noise2D.HeightNoisePersistence);
         }
 
         public double CalculateNoise3D(Vector3 worldPos)
         {
             // make the coordinates positive since calculating Perlin Noise may not work correctly with negative values.
-            return perlin.GetOctavePerlin3D(worldPos.x * Noise3D.DensityNoiseScaler, worldPos.y * Noise3D.DensityNoiseScaler, worldPos.z * Noise3D.DensityNoiseScaler, Noise3D.DensityNoiseOctaves, Noise3D.DensityNoisePersistence);
+            return Perlin.GetOctavePerlin3D(worldPos.x * Noise3D.DensityNoiseScaler, worldPos.y * Noise3D.DensityNoiseScaler, worldPos.z * Noise3D.DensityNoiseScaler, Noise3D.DensityNoiseOctaves, Noise3D.DensityNoisePersistence);
         }
 
         int GetHeightThreshold(float maxHeight, double noise)
