@@ -33,9 +33,9 @@ namespace UniVoxel.Core
         public int HeightNoiseOctaves => _heightNoiseOctaves;
 
         [SerializeField]
-        double _heightNoisePersistence;
+        float _heightNoisePersistence;
 
-        public double HeightNoisePersistence => _heightNoisePersistence;
+        public float HeightNoisePersistence => _heightNoisePersistence;
     }
     
     [Serializable]
@@ -43,9 +43,9 @@ namespace UniVoxel.Core
     {
 
         [SerializeField]
-        double _densityThreshold;
+        float _densityThreshold;
 
-        public double DensityThreshold => _densityThreshold;
+        public float DensityThreshold => _densityThreshold;
 
         [SerializeField]
         float _densityNoiseScaler;
@@ -58,9 +58,9 @@ namespace UniVoxel.Core
         public int DensityNoiseOctaves => _densityNoiseOctaves;
 
         [SerializeField]
-        double _densityNoisePersistence;
+        float _densityNoisePersistence;
 
-        public double DensityNoisePersistence => _densityNoisePersistence;
+        public float DensityNoisePersistence => _densityNoisePersistence;
     }
 
     [CreateAssetMenu(fileName = "PerlinNoiseSettings", menuName = "UniVoxel/PerlinNoiseSettings", order = 0)]

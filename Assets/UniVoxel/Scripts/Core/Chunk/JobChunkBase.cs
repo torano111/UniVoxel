@@ -8,8 +8,8 @@ using Unity.Collections;
 
 namespace UniVoxel.Core
 {
-
-    public class JobChunkBase : ChunkBase
+    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
+    public abstract class JobChunkBase : ChunkBase
     {
         protected static BoxFaceSide[] FaceSides = new BoxFaceSide[] { BoxFaceSide.Front, BoxFaceSide.Back, BoxFaceSide.Top, BoxFaceSide.Bottom, BoxFaceSide.Right, BoxFaceSide.Left };
         protected MeshFilter _meshFilter;
@@ -18,13 +18,56 @@ namespace UniVoxel.Core
 
         protected Mesh _mesh;
 
-        protected NativeArray<Vector3> _vertices;
-        protected NativeArray<int> _triangles;
-        protected NativeArray<Vector2> _uv;
-        protected NativeArray<Vector3> _normals;
-        protected NativeArray<Vector4> _tangents;
+        // protected NativeArray<Vector3> _vertices;
+        // protected NativeArray<int> _triangles;
+        // protected NativeArray<Vector2> _uv;
+        // protected NativeArray<Vector3> _normals;
+        // protected NativeArray<Vector4> _tangents;
 
-        protected JobHandle CalculateMeshPropertiesJobHandle;
+        protected List<Vector3> _vertices = new List<Vector3>();
+        protected List<int> _triangles = new List<int>();
+        protected List<Vector2> _uv = new List<Vector2>();
+        protected List<Vector3> _normals = new List<Vector3>();
+        protected List<Vector4> _tangents = new List<Vector4>();
+
+        protected JobHandle InitBlocksJobHandle;
+
+        public override void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)
+        {
+            this._chunkHolder = chunkHolder;
+            this.Size = chunkSize;
+            this.Extent = extent;
+            this.Position = position;
+
+            this._blocks = new Block[Size * Size * Size];
+
+            InitializePersistentNativeArrays();
+            InitBlocksJobHandle = ScheduleInitializeBlocksJob();
+        }
+
+        protected virtual void InitializePersistentNativeArrays() { }
+
+        protected abstract JobHandle ScheduleInitializeBlocksJob(JobHandle dependency = new JobHandle());
+
+        protected virtual void CompleteInitializeBlocksJob()
+        {
+            InitBlocksJobHandle.Complete();
+            OnCompleteInitializeBlocksJob();
+            _isInitialized.Value = true;
+        }
+
+        protected abstract void DisposeOnDestroy();
+
+        protected abstract void OnCompleteInitializeBlocksJob();
+
+        protected override void OnDestroy()
+        {
+            InitBlocksJobHandle.Complete();
+
+            base.OnDestroy();
+
+            DisposeOnDestroy();
+        }
 
         protected override void Awake()
         {
@@ -50,21 +93,21 @@ namespace UniVoxel.Core
             _mesh.Clear();
 
             _mesh.SetVertices(_vertices);
-            // _mesh.SetUVs(0, _uv);
-            // _mesh.SetNormals(_normals);
-            // _mesh.SetTangents(_tangents);
-            // _mesh.SetTriangles(_triangles, 0);
+            _mesh.SetUVs(0, _uv);
+            _mesh.SetNormals(_normals);
+            _mesh.SetTangents(_tangents);
+            _mesh.SetTriangles(_triangles, 0);
 
             _mesh.RecalculateBounds();
         }
 
         protected virtual void ClearMeshProperties()
         {
-            // _vertices.Clear();
-            // _triangles.Clear();
-            // _uv.Clear();
-            // _normals.Clear();
-            // _tangents.Clear();
+            _vertices.Clear();
+            _triangles.Clear();
+            _uv.Clear();
+            _normals.Clear();
+            _tangents.Clear();
         }
 
         protected virtual void UpdateCollider()
@@ -87,13 +130,15 @@ namespace UniVoxel.Core
             }
         }
 
-        protected void UpdateMeshProperties()
-        {
-            
-        }
+        protected abstract void UpdateMeshProperties();
 
         protected virtual void Update()
         {
+            if (!IsInitialized.Value)
+            {
+                CompleteInitializeBlocksJob();
+            }
+            
             if (NeedsUpdate)
             {
                 this.NeedsUpdate = false;

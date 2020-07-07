@@ -163,9 +163,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _worldSettings: {fileID: 11400000, guid: d95632c6841fcdf4cb781ca95fff6255, type: 2}
-  _minChunkPos: {x: -2, y: 0, z: -2}
+  _minChunkPos: {x: 0, y: 0, z: 0}
   _maxChunkPos: {x: 2, y: 2, z: 2}
-  _chunkPrefab: {fileID: 5130475949019091047, guid: 4c6401c07255b0e4bb269ba9ba41d545,
+  _chunkPrefab: {fileID: 3933833454263794029, guid: ef96c4eac76c40b4c861672db6fac3ee,
     type: 3}
   _player: {fileID: 1104974189}
 --- !u!4 &1529972742

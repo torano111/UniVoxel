@@ -8,11 +8,11 @@ namespace UniVoxel.Core
 {
     public abstract class ChunkBase : MonoBehaviour, IChunk
     {
-        public float Extent { get; private set; }
-        public Vector3Int Position { get; private set; }
+        public float Extent { get; protected set; }
+        public Vector3Int Position { get; protected set; }
         public string Name { get => gameObject.name; set => gameObject.name = value; }
 
-        public int Size { get; private set; }
+        public int Size { get; protected set; }
         public int GetChunkSize() => Size;
 
         protected Block[] _blocks;
@@ -140,6 +140,12 @@ namespace UniVoxel.Core
                 // if neither chunk holder nor neighbour chunk found, then just return false
                 return false;
             }
+        }
+
+        
+        protected virtual void OnDestroy()
+        {
+
         }
     }
 }

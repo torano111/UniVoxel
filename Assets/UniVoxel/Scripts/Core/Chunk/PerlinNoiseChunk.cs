@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UniVoxel.Utility;
+using Unity.Mathematics;
 
 namespace UniVoxel.Core
 {
@@ -223,7 +224,7 @@ namespace UniVoxel.Core
                 {
                     if (!neighbourChunk.ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
                     {
-                        throw new System.InvalidOperationException($"couldn't find a neighbour block in a neighbour chunk\nchunkPos: x={x}, y={y}, z={z} neighbourPos: x={neighbourBlockIndices.x}, y={neighbourBlockIndices.y}, z={neighbourBlockIndices.z}");
+                        throw new System.InvalidOperationException($"couldn't find a neighbour block in a neighbour chunk\nchunk pos: x={Position.x}, y={Position.y}, z={Position.z}, block position: x={x}, y={y}, z={z} neighbour block pos: x={neighbourBlockIndices.x}, y={neighbourBlockIndices.y}, z={neighbourBlockIndices.z}");
                     }
 
                     return neighbourChunk.IsSolid(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z);
