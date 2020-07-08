@@ -15,7 +15,7 @@ namespace UniVoxel.Utility
 {
     /// <summary>
     /// Counter for Jobs. Use NativeCacheCounter.Concurrent for parallel jobs.
-    /// NativeCacheCounter may be better to use.
+    /// NativeCacheCounter may be better in point of performance, but this can safely return the value after incrementing in a parallel job.
     /// https://docs.unity3d.com/Packages/com.unity.jobs@0.2/manual/custom_job_types.html
     /// </summary>
     // Mark this struct as a NativeContainer, usually this would be a generic struct for containers, but a counter does not need to be generic
@@ -151,7 +151,7 @@ namespace UniVoxel.Utility
 
     /// <summary>
     /// Counter for Jobs. Use NativeCacheCounter.Concurrent for parallel jobs.
-    /// This is better implementation than NativeCounter
+    /// The performance is better than NativeCounter, but Increment method cannot return the value.
     /// https://docs.unity3d.com/Packages/com.unity.jobs@0.2/manual/custom_job_types.html
     /// </summary>
     // Mark this struct as a NativeContainer, usually this would be a generic struct for containers, but a counter does not need to be generic
@@ -199,14 +199,14 @@ namespace UniVoxel.Utility
             Count = 0;
         }
 
-        public int Increment()
+        public void Increment()
         {
             // Verify that the caller has write permission on this data. 
             // This is the race condition protection, without these checks the AtomicSafetyHandle is useless
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-            return (*m_Counter)++;
+            (*m_Counter)++;
         }
 
         public int Count
@@ -283,13 +283,13 @@ namespace UniVoxel.Utility
                 return concurrent;
             }
 
-            public int Increment()
+            public void Increment()
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
                 // No need for atomics any more since we are just incrementing the local count
-                return ++m_Counter[IntsPerCacheLine * m_ThreadIndex];
+                ++m_Counter[IntsPerCacheLine * m_ThreadIndex];
             }
         }
     }

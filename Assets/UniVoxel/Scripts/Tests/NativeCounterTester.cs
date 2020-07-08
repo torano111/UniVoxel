@@ -14,11 +14,16 @@ namespace UniVoxel.Tests
         [ReadOnly]
         public NativeArray<int> input;
         public NativeCounter.Concurrent counter;
+
+        [WriteOnly]
+        public NativeArray<int> counts;
+
         public void Execute(int i)
         {
             if (input[i] == 0)
             {
-                counter.Increment();
+                var count = counter.Increment();
+                counts[i] = count;
             }
         }
     }
@@ -27,11 +32,17 @@ namespace UniVoxel.Tests
         [ReadOnly]
         public NativeArray<int> input;
         public NativeCacheCounter.Concurrent counter;
+
+        // [WriteOnly]
+        // public NativeArray<int> counts;
+
         public void Execute(int i)
         {
             if (input[i] == 0)
             {
                 counter.Increment();
+                // var count = counter.Increment();
+                // counts[i] = count;
             }
         }
     }
@@ -98,14 +109,23 @@ namespace UniVoxel.Tests
             {
                 input = new NativeArray<int>(_input, Allocator.TempJob),
                 counter = counter,
+                counts = new NativeArray<int>(_input.Length, Allocator.TempJob),
             };
 
             var handle = jobData.Schedule(_input.Length, 8);
             handle.Complete();
 
-            Debug.Log("The array countains " + counter.Count + " zeros");
+            var countsSt = "";
+
+            for (var i = 0; i < jobData.counts.Length; i++)
+            {
+                countsSt += jobData.counts[i]  + " ";
+            }
+
+            Debug.Log("The array countains " + counter.Count + " zeros\n" + "counts: " + countsSt);
             counter.Dispose();
             jobData.input.Dispose();
+            jobData.counts.Dispose();
             
             Debug.Log("----- -----");
         }
@@ -126,14 +146,24 @@ namespace UniVoxel.Tests
             {
                 input = new NativeArray<int>(_input, Allocator.TempJob),
                 counter = counter,
+                // counts = new NativeArray<int>(_input.Length, Allocator.TempJob),
             };
 
             var handle = jobData.Schedule(_input.Length, 8);
             handle.Complete();
 
-            Debug.Log("The array countains " + counter.Count + " zeros");
+            // var countsSt = "";
+
+            // for (var i = 0; i < jobData.counts.Length; i++)
+            // {
+            //     countsSt += jobData.counts[i] + " ";
+            // }
+
+            Debug.Log("The array countains " + counter.Count + " zeros\n");
+            // Debug.Log("The array countains " + counter.Count + " zeros\n" + "counts: " + countsSt);
             counter.Dispose();
             jobData.input.Dispose();
+            // jobData.counts.Dispose();
             
             Debug.Log("----- -----");
         }
