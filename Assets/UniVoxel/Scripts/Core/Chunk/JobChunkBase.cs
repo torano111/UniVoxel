@@ -5,6 +5,7 @@ using UniVoxel.Utility;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Collections;
+using UnityEngine.Rendering;
 
 namespace UniVoxel.Core
 {
@@ -18,19 +19,9 @@ namespace UniVoxel.Core
 
         protected Mesh _mesh;
 
-        // protected NativeArray<Vector3> _vertices;
-        // protected NativeArray<int> _triangles;
-        // protected NativeArray<Vector2> _uv;
-        // protected NativeArray<Vector3> _normals;
-        // protected NativeArray<Vector4> _tangents;
+        protected JobHandle JobHandle;
 
-        protected List<Vector3> _vertices = new List<Vector3>();
-        protected List<int> _triangles = new List<int>();
-        protected List<Vector2> _uv = new List<Vector2>();
-        protected List<Vector3> _normals = new List<Vector3>();
-        protected List<Vector4> _tangents = new List<Vector4>();
-
-        protected JobHandle InitBlocksJobHandle;
+        protected bool IsUpdateMeshPropertiesJobCompleted = true;
 
         public override void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)
         {
@@ -42,7 +33,7 @@ namespace UniVoxel.Core
             this._blocks = new Block[Size * Size * Size];
 
             InitializePersistentNativeArrays();
-            InitBlocksJobHandle = ScheduleInitializeBlocksJob();
+            JobHandle = ScheduleInitializeBlocksJob();
         }
 
         protected virtual void InitializePersistentNativeArrays() { }
@@ -51,7 +42,7 @@ namespace UniVoxel.Core
 
         protected virtual void CompleteInitializeBlocksJob()
         {
-            InitBlocksJobHandle.Complete();
+            JobHandle.Complete();
             OnCompleteInitializeBlocksJob();
             _isInitialized.Value = true;
         }
@@ -62,7 +53,7 @@ namespace UniVoxel.Core
 
         protected override void OnDestroy()
         {
-            InitBlocksJobHandle.Complete();
+            JobHandle.Complete();
 
             base.OnDestroy();
 
@@ -92,22 +83,23 @@ namespace UniVoxel.Core
         {
             _mesh.Clear();
 
-            _mesh.SetVertices(_vertices);
-            _mesh.SetUVs(0, _uv);
-            _mesh.SetNormals(_normals);
-            _mesh.SetTangents(_tangents);
-            _mesh.SetTriangles(_triangles, 0);
+            var startId = 0;
+            var count = 0;
+            var vertices = GetVertices(ref startId, ref count);
+            if (count <= 0)
+            {
+                return;
+            }
 
-            _mesh.RecalculateBounds();
-        }
+            _mesh.SetVertices(vertices, startId, count);
 
-        protected virtual void ClearMeshProperties()
-        {
-            _vertices.Clear();
-            _triangles.Clear();
-            _uv.Clear();
-            _normals.Clear();
-            _tangents.Clear();
+            var uv = GetUV(ref startId, ref count);
+            _mesh.SetUVs(0, uv, startId, count);
+
+            var triangles = GetTriangles(ref startId, ref count);
+            _mesh.SetIndices(triangles, startId, count, MeshTopology.Triangles, 0, true);
+
+            _mesh.RecalculateNormals();
         }
 
         protected virtual void UpdateCollider()
@@ -118,10 +110,6 @@ namespace UniVoxel.Core
 
         protected virtual void UpdateChunk(bool updatesCollider = true)
         {
-            ClearMeshProperties();
-
-            UpdateMeshProperties();
-
             UpdateRenderer();
 
             if (updatesCollider)
@@ -130,20 +118,43 @@ namespace UniVoxel.Core
             }
         }
 
-        protected abstract void UpdateMeshProperties();
+        protected abstract JobHandle ScheduleUpdateMeshPropertiesJob(JobHandle dependency);
+
+        protected abstract void OnCompleteUpdateMeshPropertiesJob();
+
+        protected void CompleteUpdateMeshPropertiesJob()
+        {
+            JobHandle.Complete();
+            UpdateChunk(true);
+
+            OnCompleteUpdateMeshPropertiesJob();
+        }
 
         protected virtual void Update()
         {
             if (!IsInitialized.Value)
             {
                 CompleteInitializeBlocksJob();
+                IsUpdateMeshPropertiesJobCompleted = true;
             }
-            
-            if (NeedsUpdate)
+
+            if (NeedsUpdate && IsUpdateMeshPropertiesJobCompleted)
+            {
+                IsUpdateMeshPropertiesJobCompleted = false;
+                JobHandle = ScheduleUpdateMeshPropertiesJob(JobHandle);
+            }
+            else if (NeedsUpdate)
             {
                 this.NeedsUpdate = false;
-                UpdateChunk(true);
+                IsUpdateMeshPropertiesJobCompleted = true;
+                CompleteUpdateMeshPropertiesJob();
             }
         }
+
+        protected abstract NativeArray<float3> GetVertices(ref int startId, ref int count);
+
+        protected abstract NativeArray<ushort> GetTriangles(ref int startId, ref int count);
+
+        protected abstract NativeArray<float2> GetUV(ref int startId, ref int count);
     }
 }
