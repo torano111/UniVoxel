@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UniRx;
 using UniVoxel.Utility;
+using System;
 
 namespace UniVoxel.Core
 {
@@ -23,6 +24,11 @@ namespace UniVoxel.Core
 
         protected ReactiveProperty<bool> _isInitialized = new ReactiveProperty<bool>(false);
         public IReadOnlyReactiveProperty<bool> IsInitialized => _isInitialized;
+
+        ReactiveProperty<bool> _isUpdatingChunkRP = new ReactiveProperty<bool>(false);
+        public IReadOnlyReactiveProperty<bool> IsUpdatingChunkRP { get => _isUpdatingChunkRP; }
+
+        public bool IsUpdatingChunk { get => IsUpdatingChunkRP.Value; protected set => _isUpdatingChunkRP.Value = value; }
 
         public virtual void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)
         {
@@ -142,7 +148,7 @@ namespace UniVoxel.Core
             }
         }
 
-        
+
         protected virtual void OnDestroy()
         {
 

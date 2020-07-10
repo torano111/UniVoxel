@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using UniRx;
 
 namespace UniVoxel.Core
 {
@@ -79,6 +81,8 @@ namespace UniVoxel.Core
             {
                 UpdateCollider();
             }
+
+            IsUpdatingChunk = false;
         }
 
         protected abstract void UpdateMeshProperties();
@@ -88,6 +92,7 @@ namespace UniVoxel.Core
             if (NeedsUpdate)
             {
                 this.NeedsUpdate = false;
+                IsUpdatingChunk = true;
                 UpdateChunk(true);
             }
         }

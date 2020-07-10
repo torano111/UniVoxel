@@ -112,84 +112,14 @@ namespace UniVoxel.Core
                 {
                     for (var z = 0; z < Size; z++)
                     {
-                        Block block = default(Block);
-
-                        if (TryGetBlockType(GetBlockWorldPosition(Position, new Vector3Int(x, y, z)), out var blockType))
+                        var blockInfo = ChunkUtility.CalculateBlockInfo(new int3(x, y, z), Noise2D, Noise3D, new int3(Size, Size, Size), Extent, new int3(Position.x, Position.y, Position.z), _perlinNoiseSettings.UseNoise2D, _perlinNoiseSettings.UseNoise3D);
+                        if (blockInfo.IsSolid)
                         {
-                            block = new Block(blockType);
-                        }
-
-                        if (block.IsValid)
-                        {
-                            SetBlock(x, y, z, block);
+                            SetBlock(x, y, z, new Block(blockInfo.BlockType));
                         }
                     }
                 }
             }
-        }
-
-        Vector3 GetBlockWorldPosition(Vector3 chunkWorldPos, Vector3Int blockIndices)
-        {
-            return chunkWorldPos + (Vector3)blockIndices * Extent * 2f;
-        }
-
-        public bool TryGetBlockType(Vector3 worldPos, out BlockType blockType)
-        {
-            blockType = default(BlockType);
-
-            var densityNoise = CalculateNoise3D(worldPos);
-            int currentHeight = (int)worldPos.y;
-
-            if (_perlinNoiseSettings.UseNoise3D && densityNoise <= Noise3D.DensityThreshold)
-            {
-                return false;
-            }
-            else
-            {
-                if (!_perlinNoiseSettings.UseNoise2D)
-                {
-                    return true;
-                }
-
-                var heightNoise = CalculateNoise2D(worldPos);
-
-                if (currentHeight <= GetHeightThreshold(Noise2D.MaxStoneLayerHeight, heightNoise))
-                {
-                    blockType = BlockType.Stone;
-                    return true;
-                }
-                else if (currentHeight < GetHeightThreshold(Noise2D.MaxGroundHeight, heightNoise))
-                {
-                    blockType = BlockType.Dirt;
-                    return true;
-                }
-                else if (currentHeight == GetHeightThreshold(Noise2D.MaxGroundHeight, heightNoise))
-                {
-                    blockType = BlockType.Grass;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-
-        public double CalculateNoise2D(Vector3 worldPos)
-        {
-            // make the coordinates positive since calculating Perlin Noise may not work correctly with negative values.
-            return Perlin.GetOctavePerlin2D(worldPos.x * Noise2D.HeightNoiseScaler, worldPos.z * Noise2D.HeightNoiseScaler, Noise2D.HeightNoiseOctaves, Noise2D.HeightNoisePersistence);
-        }
-
-        public double CalculateNoise3D(Vector3 worldPos)
-        {
-            // make the coordinates positive since calculating Perlin Noise may not work correctly with negative values.
-            return Perlin.GetOctavePerlin3D(worldPos.x * Noise3D.DensityNoiseScaler, worldPos.y * Noise3D.DensityNoiseScaler, worldPos.z * Noise3D.DensityNoiseScaler, Noise3D.DensityNoiseOctaves, Noise3D.DensityNoisePersistence);
-        }
-
-        int GetHeightThreshold(float maxHeight, double noise)
-        {
-            return (int)Mathf.Lerp(Noise2D.MinHeight, maxHeight, (float)noise);
         }
 
         public override bool IsNeighbourSolid(int x, int y, int z, BoxFaceSide neighbourDirection)
@@ -232,9 +162,8 @@ namespace UniVoxel.Core
                 // if no chunk found, then calculate noise instead of the neighbour chunk and check if solid
                 else if (_accurateSolidCheck)
                 {
-                    var virtualNeighbourBlockWorldPos = GetBlockWorldPosition(neighbourChunkPos, neighbourBlockIndices);
-
-                    return TryGetBlockType(virtualNeighbourBlockWorldPos, out var blockType);
+                    var blockInfo = ChunkUtility.CalculateBlockInfo(new int3(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z), Noise2D, Noise3D, new int3(Size, Size, Size), Extent, new int3(neighbourChunkPos.x, neighbourChunkPos.y, neighbourChunkPos.z), _perlinNoiseSettings.UseNoise2D, _perlinNoiseSettings.UseNoise3D);
+                    return blockInfo.IsSolid;
                 }
 
                 return false;

@@ -6,6 +6,8 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Collections;
 using UnityEngine.Rendering;
+using System;
+using UniRx;
 
 namespace UniVoxel.Core
 {
@@ -141,6 +143,7 @@ namespace UniVoxel.Core
             if (NeedsUpdate && IsUpdateMeshPropertiesJobCompleted)
             {
                 IsUpdateMeshPropertiesJobCompleted = false;
+                IsUpdatingChunk = true;
                 JobHandle = ScheduleUpdateMeshPropertiesJob(JobHandle);
             }
             else if (NeedsUpdate)
@@ -148,6 +151,7 @@ namespace UniVoxel.Core
                 this.NeedsUpdate = false;
                 IsUpdateMeshPropertiesJobCompleted = true;
                 CompleteUpdateMeshPropertiesJob();
+                IsUpdatingChunk = false;
             }
         }
 

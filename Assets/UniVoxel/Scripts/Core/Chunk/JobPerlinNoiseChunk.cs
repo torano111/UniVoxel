@@ -30,9 +30,6 @@ namespace UniVoxel.Core
         [SerializeField]
         Vector2 _textureAtlasLengths = new Vector2(256f, 256f);
 
-        [SerializeField]
-        bool _accurateSolidCheck = true;
-
         protected CalculateBlocksParallelJob InitBlocksJob;
         
         protected CalculateMeshPropertiesParallelJob MeshPropertiesJob;

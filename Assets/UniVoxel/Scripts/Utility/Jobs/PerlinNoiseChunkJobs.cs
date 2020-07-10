@@ -132,47 +132,46 @@ namespace UniVoxel.Utility.Jobs
             var center = (float3)blockPos * extent * 2.0f;
 
             int quadCount;
-            if (!IsNeighbourSolid(index, BoxFaceSide.Front))
+            if (!IsNeighbourSolid(blockPos, BoxFaceSide.Front))
             {
                 quadCount = Counter.Increment();
                 AddFace(index, BoxFaceSide.Front, center, extent, quadCount);
             }
 
-            if (!IsNeighbourSolid(index, BoxFaceSide.Back))
+            if (!IsNeighbourSolid(blockPos, BoxFaceSide.Back))
             {
                 quadCount = Counter.Increment();
                 AddFace(index, BoxFaceSide.Back, center, extent, quadCount);
             }
 
-            if (!IsNeighbourSolid(index, BoxFaceSide.Top))
+            if (!IsNeighbourSolid(blockPos, BoxFaceSide.Top))
             {
                 quadCount = Counter.Increment();
                 AddFace(index, BoxFaceSide.Top, center, extent, quadCount);
             }
 
-            if (!IsNeighbourSolid(index, BoxFaceSide.Bottom))
+            if (!IsNeighbourSolid(blockPos, BoxFaceSide.Bottom))
             {
                 quadCount = Counter.Increment();
                 AddFace(index, BoxFaceSide.Bottom, center, extent, quadCount);
             }
 
-            if (!IsNeighbourSolid(index, BoxFaceSide.Right))
+            if (!IsNeighbourSolid(blockPos, BoxFaceSide.Right))
             {
                 quadCount = Counter.Increment();
                 AddFace(index, BoxFaceSide.Right, center, extent, quadCount);
             }
 
-            if (!IsNeighbourSolid(index, BoxFaceSide.Left))
+            if (!IsNeighbourSolid(blockPos, BoxFaceSide.Left))
             {
                 quadCount = Counter.Increment();
                 AddFace(index, BoxFaceSide.Left, center, extent, quadCount);
             }
         }
 
-        bool IsNeighbourSolid(int index, BoxFaceSide side)
+        bool IsNeighbourSolid(int3 blockPos, BoxFaceSide side)
         {
             var size = ChunkSize[0];
-            var blockPos = MathUtility.Get3DIndicesFromLinearIndex(index, size.x, size.z);
             var neighbourBlockIndices = BlockUtility.GetNeighbourPosition(blockPos.x, blockPos.y, blockPos.z, side, 1);
             var neighbourBlockLinearIndex = MathUtility.GetLinearIndexFrom3Points(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z, size.x, size.z);
 
