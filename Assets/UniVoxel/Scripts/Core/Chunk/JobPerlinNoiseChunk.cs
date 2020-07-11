@@ -170,7 +170,6 @@ namespace UniVoxel.Core
 
         protected override void DisposeOnDestroy()
         {
-            JobHandle.Complete();
             DisposePersistentNativeArrays();
             DisposeOnCompleteInitializeBlocksJob();
             DisposeOnCompleteUpdateMeshPropertiesJob();

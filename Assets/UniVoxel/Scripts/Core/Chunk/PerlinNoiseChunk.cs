@@ -134,6 +134,7 @@ namespace UniVoxel.Core
             {
                 var neighbourChunkPos = BlockUtility.GetNeighbourPosition(this.Position.x, this.Position.y, this.Position.z, neighbourDirection, Size);
 
+
                 var diff = neighbourBlockIndices - new Vector3Int(x, y, z);
                 for (var axis = 0; axis < 3; axis++)
                 {

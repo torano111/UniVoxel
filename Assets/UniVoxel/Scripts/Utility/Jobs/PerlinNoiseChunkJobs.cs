@@ -172,11 +172,12 @@ namespace UniVoxel.Utility.Jobs
         bool IsNeighbourSolid(int3 blockPos, BoxFaceSide side)
         {
             var size = ChunkSize[0];
-            var neighbourBlockIndices = BlockUtility.GetNeighbourPosition(blockPos.x, blockPos.y, blockPos.z, side, 1);
+            var nids = BlockUtility.GetNeighbourPosition(blockPos.x, blockPos.y, blockPos.z, side, 1);
+            var neighbourBlockIndices = new int3(nids.x, nids.y, nids.z);
             var neighbourBlockLinearIndex = MathUtility.GetLinearIndexFrom3Points(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z, size.x, size.z);
 
             // if the neighbour block is in this chunk
-            if (HasBlock(neighbourBlockLinearIndex))
+            if (IsBlockInRange(neighbourBlockIndices))
             {
                 var neighbourBlock = Blocks[neighbourBlockLinearIndex];
                 return neighbourBlock.IsValid;
@@ -184,9 +185,42 @@ namespace UniVoxel.Utility.Jobs
             // if not, then calculate the noise of the virtual neighbour block
             else
             {
-                var bInfo = ChunkUtility.CalculateBlockInfo(neighbourBlockLinearIndex, Noise2D[0], Noise3D[0], ChunkSize[0], Extent[0], ChunkPosition[0], UsePerlinNoise[0] != 0, UsePerlinNoise[1] != 0);
+                var diff = neighbourBlockIndices - new int3(blockPos.x, blockPos.y, blockPos.z);
+                for (var axis = 0; axis < 3; axis++)
+                {
+                    if (diff[axis] < 0)
+                    {
+                        neighbourBlockIndices[axis] =  ChunkSize[0][axis] - 1;
+                        break;
+                    }
+
+                    else if (0 < diff[axis])
+                    {
+                        neighbourBlockIndices[axis] = 0;
+                        break;
+                    }
+                }
+                
+                var neighbourChunkPos = BlockUtility.GetNeighbourPosition(ChunkPosition[0].x, ChunkPosition[0].y, ChunkPosition[0].z, side, ChunkSize[0].x);
+                var bInfo = ChunkUtility.CalculateBlockInfo(neighbourBlockIndices, Noise2D[0], Noise3D[0], ChunkSize[0], Extent[0], new int3(neighbourChunkPos.x, neighbourChunkPos.y, neighbourChunkPos.z), UsePerlinNoise[0] != 0, UsePerlinNoise[1] != 0);
                 return bInfo.IsSolid;
             }
+        }
+
+        bool IsBlockInRange(int3 blockPos)
+        {
+            for (var axis = 0; axis < 3; axis++)
+            {
+                if (blockPos[axis] < 0)
+                {
+                    return false;
+                }
+                if (ChunkSize[0][axis] <= blockPos[axis])
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         bool HasBlock(int index)
