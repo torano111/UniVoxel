@@ -22,7 +22,7 @@ namespace UniVoxel.Core
         protected List<Vector3> _normals = new List<Vector3>();
         protected List<Vector4> _tangents = new List<Vector4>();
 
-        protected override void Awake()
+        protected virtual void Awake()
         {
             _meshFilter = GetComponent<MeshFilter>();
             _meshRenderer = GetComponent<MeshRenderer>();

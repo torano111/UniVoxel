@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UniVoxel.Utility;
 using UnityStandardAssets.Characters.FirstPerson;
+using System;
+using UniRx;
+using UniRx.Triggers;
 
 namespace UniVoxel.Core
 {
@@ -13,14 +16,16 @@ namespace UniVoxel.Core
         Vector3Int _ranges = new Vector3Int(3, 1, 3);
 
         [SerializeField]
-        PerlinNoiseChunk _chunkPrefab;
+        ChunkBase _chunkPrefab;
+
+        ChunkPool _chunkPool;
 
         [SerializeField]
         FirstPersonController _player;
 
         bool _isInitialized = false;
 
-        Queue<ChunkBase> _chunksToDestroy = new Queue<ChunkBase>();
+        Queue<ChunkBase> _chunksToReturn = new Queue<ChunkBase>();
         Queue<Vector3Int> _chunkPositionsToSpawn = new Queue<Vector3Int>();
 
         [SerializeField]
@@ -64,6 +69,14 @@ namespace UniVoxel.Core
 
         void Start()
         {
+            _chunkPool = new ChunkPool(_chunkPrefab, this.transform);
+
+            this.OnDestroyAsObservable()
+                .Subscribe(_ =>
+                {
+                    _chunkPool.Dispose();
+                });
+
             _player.gameObject.SetActive(false);
             InitChunks();
             StartCoroutine("BuildInitialChunks");
@@ -96,9 +109,15 @@ namespace UniVoxel.Core
         ChunkBase InitChunk(Vector3 worldPos)
         {
             var cPos = GetChunkPositionAt(worldPos);
-            var chunk = Instantiate(_chunkPrefab, cPos, Quaternion.identity);
+
+            if (_chunks.TryGetValue(cPos, out var c))
+            {
+                return c;
+            }
+            
+            var chunk = _chunkPool.Rent();
+            chunk.transform.position = cPos;
             chunk.name = $"Chunk_{cPos.x}_{cPos.y}_{cPos.z}";
-            chunk.transform.SetParent(this.transform);
 
             chunk.Initialize(this, ChunkSize, Extent, cPos);
             _chunks.Add(cPos, chunk);
@@ -167,13 +186,8 @@ namespace UniVoxel.Core
             }
 
             CheckActiveChunks();
-            RemoveInactiveChunks();
+            ReturnInactiveChunks();
             SpawnChunksInRange();
-
-            // if (_chunkPositionsToSpawn.Count > 0)
-            // {
-            //     StartCoroutine("SpawnChunksInRangeCoroutine");
-            // }
         }
 
         bool IsInRange(Vector3 chunkPos0, Vector3 chunkPos1)
@@ -192,14 +206,14 @@ namespace UniVoxel.Core
 
         void CheckActiveChunks()
         {
-            if (_chunksToDestroy.Count == 0)
+            if (_chunksToReturn.Count == 0)
             {
                 var playerChunkPos = GetChunkPositionAt(_player.transform.position);
                 foreach (var chunk in _chunks.Values)
                 {
                     if (!IsInRange(playerChunkPos, chunk.Position))
                     {
-                        _chunksToDestroy.Enqueue(chunk);
+                        _chunksToReturn.Enqueue(chunk);
                     }
                 }
 
@@ -237,14 +251,15 @@ namespace UniVoxel.Core
             // Debug.Log($"chunksToDestroy: {_chunksToDestroy.Count}, chunkPositionsToSpawn: {_chunkPositionsToSpawn.Count}");
         }
 
-        void RemoveInactiveChunks()
+        void ReturnInactiveChunks()
         {
-            while (_chunksToDestroy.Count > 0)
+            while (_chunksToReturn.Count > 0)
             {
-                var chunk = _chunksToDestroy.Dequeue();
+                var chunk = _chunksToReturn.Dequeue();
 
                 _chunks.Remove(chunk.Position);
-                Destroy(chunk.gameObject);
+                // Destroy(chunk.gameObject);
+                _chunkPool.Return(chunk);
             }
         }
 
@@ -253,30 +268,6 @@ namespace UniVoxel.Core
             var count = 0;
             while (_chunkPositionsToSpawn.Count > 0 && count < _numChunksToSpawnInAFrame)
             {
-                var cPos = _chunkPositionsToSpawn.Dequeue();
-
-                if (!_chunks.ContainsKey(cPos))
-                {
-                    var chunk = InitChunk(cPos);
-                    chunk.MarkUpdate();
-                    count++;
-                }
-            }
-
-            // Debug.Log($"{count} chunks spawned");
-        }
-
-        IEnumerator SpawnChunksInRangeCoroutine()
-        {
-            var count = 0;
-            while (_chunkPositionsToSpawn.Count > 0)
-            {
-                if (count < _numChunksToSpawnInAFrame)
-                {
-                    yield return null;
-                    count = 0;
-                }
-
                 var cPos = _chunkPositionsToSpawn.Dequeue();
 
                 if (!_chunks.ContainsKey(cPos))

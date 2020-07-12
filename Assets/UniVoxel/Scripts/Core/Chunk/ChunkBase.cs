@@ -89,11 +89,6 @@ namespace UniVoxel.Core
             }
         }
 
-        protected virtual void Awake()
-        {
-            this.NeedsUpdate = false;
-        }
-
         public virtual bool TryGetNeighbourBlock(int x, int y, int z, BoxFaceSide neighbourDirection, out Block block)
         {
             var neighbourPos = BlockUtility.GetNeighbourPosition(x, y, z, neighbourDirection, 1);
@@ -146,12 +141,6 @@ namespace UniVoxel.Core
                 // if neither chunk holder nor neighbour chunk found, then just return false
                 return false;
             }
-        }
-
-
-        protected virtual void OnDestroy()
-        {
-
         }
     }
 }

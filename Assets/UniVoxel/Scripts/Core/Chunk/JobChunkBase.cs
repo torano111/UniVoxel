@@ -8,6 +8,7 @@ using Unity.Collections;
 using UnityEngine.Rendering;
 using System;
 using UniRx;
+using UnityEngine.Profiling;
 
 namespace UniVoxel.Core
 {
@@ -27,14 +28,23 @@ namespace UniVoxel.Core
 
         public override void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)
         {
+            _isInitialized.Value = false;
+
             this._chunkHolder = chunkHolder;
             this.Size = chunkSize;
             this.Extent = extent;
             this.Position = position;
 
-            this._blocks = new Block[Size * Size * Size];
+            var blockslength = Size * Size * Size;
 
-            InitializePersistentNativeArrays();
+            if (_blocks == null || _blocks.Length != blockslength)
+            {
+                this._blocks = new Block[blockslength];
+                DisposeOnDestroy();
+                InitializePersistentNativeArrays();
+            }
+
+            // Debug.Log($"chunk({Name}): schedule init blocks job");
             JobHandle = ScheduleInitializeBlocksJob();
         }
 
@@ -53,16 +63,14 @@ namespace UniVoxel.Core
 
         protected abstract void OnCompleteInitializeBlocksJob();
 
-        protected override void OnDestroy()
+        protected virtual void OnDestroy()
         {
             JobHandle.Complete();
-
-            base.OnDestroy();
 
             DisposeOnDestroy();
         }
 
-        protected override void Awake()
+        protected virtual void Awake()
         {
             _meshFilter = GetComponent<MeshFilter>();
             _meshRenderer = GetComponent<MeshRenderer>();
@@ -74,7 +82,7 @@ namespace UniVoxel.Core
         protected virtual void InitMesh()
         {
             _mesh = new Mesh();
-            _mesh.name = $"Mesh({Name})";
+            _mesh.name = "ChunkMesh";
             _mesh.MarkDynamic();
             _meshFilter.mesh = this._mesh;
 
@@ -102,6 +110,8 @@ namespace UniVoxel.Core
             _mesh.SetIndices(triangles, startId, count, MeshTopology.Triangles, 0, true);
 
             _mesh.RecalculateNormals();
+
+            _meshRenderer.enabled = true;
         }
 
         protected virtual void UpdateCollider()
@@ -160,5 +170,16 @@ namespace UniVoxel.Core
         protected abstract NativeArray<ushort> GetTriangles(ref int startId, ref int count);
 
         protected abstract NativeArray<float2> GetUV(ref int startId, ref int count);
+
+        protected virtual void OnEnable()
+        {
+            this.NeedsUpdate = false;
+            _meshRenderer.enabled = false;
+        }
+
+        protected virtual void OnDisable()
+        {
+            JobHandle.Complete();
+        }
     }
 }

@@ -31,9 +31,9 @@ namespace UniVoxel.Core
         Vector2 _textureAtlasLengths = new Vector2(256f, 256f);
 
         protected CalculateBlocksParallelJob InitBlocksJob;
-        
+
         protected CalculateMeshPropertiesParallelJob MeshPropertiesJob;
-        
+
         protected NativeArray<PerlinNoise2DData> NativeNoise2D;
         protected NativeArray<PerlinNoise3DData> NativeNoise3D;
         protected NativeArray<int> NativeUsePerlinNoise;
@@ -69,6 +69,11 @@ namespace UniVoxel.Core
 
         protected override JobHandle ScheduleInitializeBlocksJob(JobHandle dependency = default)
         {
+            // update chunk values
+            NativeChunkPosition[0] = new int3(Position.x, Position.y, Position.z);
+            NativeExtent[0] = Extent;
+            NativeChunkSize[0] = new int3(Size, Size, Size);
+
             InitBlocksJob = new CalculateBlocksParallelJob()
             {
                 Noise2D = NativeNoise2D,
@@ -95,6 +100,7 @@ namespace UniVoxel.Core
         {
             if (InitBlocksJob.Blocks.IsCreated)
             {
+                // Debug.Log($"chunk({Name}): dispose blocks");
                 InitBlocksJob.Blocks.Dispose();
             }
         }
@@ -124,7 +130,7 @@ namespace UniVoxel.Core
 
             var blockTypes = System.Enum.GetValues(typeof(BlockType));
             NativeBlockDatas = new NativeHashMap<int, BlockData>(blockTypes.Length, Allocator.Persistent);
-            
+
             foreach (BlockType blockType in blockTypes)
             {
                 if (_blockDataObject.TryGetBlockData(blockType, out var data))
@@ -151,26 +157,80 @@ namespace UniVoxel.Core
 
         protected virtual void DisposePersistentNativeArrays()
         {
-            NativeNoise2D.Dispose();
-            NativeNoise3D.Dispose();
-            NativeUsePerlinNoise.Dispose();
-            NativeChunkPosition.Dispose();
-            NativeExtent.Dispose();
-            NativeChunkSize.Dispose();
+            if (NativeNoise2D.IsCreated)
+            {
+                NativeNoise2D.Dispose();
+            }
 
-            NativeBlockDatas.Dispose();
-            NativeSingleTextureLenghts.Dispose();
-            NativeTextureAtlasLenghts.Dispose();
+            if (NativeNoise3D.IsCreated)
+            {
+                NativeNoise3D.Dispose();
+            }
 
-            NativeVertices.Dispose();
-            NativeTriangles.Dispose();
-            NativeUV.Dispose();
-            Counter.Dispose();
+            if (NativeUsePerlinNoise.IsCreated)
+            {
+                NativeUsePerlinNoise.Dispose();
+            }
+
+            if (NativeChunkPosition.IsCreated)
+            {
+                NativeChunkPosition.Dispose();
+            }
+
+            if (NativeExtent.IsCreated)
+            {
+                NativeExtent.Dispose();
+            }
+
+            if (NativeChunkSize.IsCreated)
+            {
+                NativeChunkSize.Dispose();
+            }
+
+            if (NativeBlockDatas.IsCreated)
+            {
+                NativeBlockDatas.Dispose();
+            }
+
+            if (NativeSingleTextureLenghts.IsCreated)
+            {
+                NativeSingleTextureLenghts.Dispose();
+            }
+
+            if (NativeTextureAtlasLenghts.IsCreated)
+            {
+                NativeTextureAtlasLenghts.Dispose();
+            }
+
+            if (NativeVertices.IsCreated)
+            {
+                NativeVertices.Dispose();
+            }
+
+            if (NativeTriangles.IsCreated)
+            {
+                NativeTriangles.Dispose();
+            }
+
+            if (NativeUV.IsCreated)
+            {
+                NativeUV.Dispose();
+            }
+
+            if (Counter.IsCreated)
+            {
+                Counter.Dispose();
+            }
         }
 
         protected override void DisposeOnDestroy()
         {
             DisposePersistentNativeArrays();
+            DisposeTempJobArrays();
+        }
+
+        protected virtual void DisposeTempJobArrays()
+        {
             DisposeOnCompleteInitializeBlocksJob();
             DisposeOnCompleteUpdateMeshPropertiesJob();
         }
@@ -210,30 +270,37 @@ namespace UniVoxel.Core
         void DisposeOnCompleteUpdateMeshPropertiesJob()
         {
             if (MeshPropertiesJob.Blocks.IsCreated)
-            {   
+            {
                 MeshPropertiesJob.Blocks.Dispose();
             }
         }
 
         protected override NativeArray<float3> GetVertices(ref int startId, ref int count)
         {
-            startId= 0;
+            startId = 0;
             count = Counter.Count * 4;
             return NativeVertices;
         }
 
         protected override NativeArray<ushort> GetTriangles(ref int startId, ref int count)
         {
-            startId= 0;
+            startId = 0;
             count = Counter.Count * 6;
             return NativeTriangles;
         }
 
         protected override NativeArray<float2> GetUV(ref int startId, ref int count)
         {
-            startId= 0;
+            startId = 0;
             count = Counter.Count * 4;
             return NativeUV;
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            DisposeTempJobArrays();
+            // Debug.Log($"Disable chunk={Name}");
         }
     }
 }
