@@ -16,7 +16,7 @@ namespace UniVoxel.Utility
 
                     if (_instance == null)
                     {
-                        Debug.LogError(typeof(T) + "not found");
+                        Debug.LogError(typeof(T) + " not found");
                     }
                 }
 

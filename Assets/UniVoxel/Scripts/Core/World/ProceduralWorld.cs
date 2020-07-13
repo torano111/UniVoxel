@@ -41,7 +41,6 @@ namespace UniVoxel.Core
                     _chunkPool.Dispose();
                 });
 
-            _playerTransform.gameObject.SetActive(false);
             InitChunks();
             StartCoroutine("BuildInitialChunks");
         }
@@ -127,28 +126,8 @@ namespace UniVoxel.Core
             yield return null;
 
             IsWorldInitialized = true;
-            SpawnPlayer();
 
             _isInitialized = true;
-        }
-
-        void SpawnPlayer()
-        {
-            var playerPos = _playerTransform.position;
-
-            if (BoxCastAndGetHighestSolidBlockIndices(playerPos, new Vector3(0.45f, 2f, 0.45f), out var chunk, out var blockIndices))
-            {
-                var spawnPos = new Vector3(playerPos.x, chunk.Position.y + blockIndices.y * chunk.Extent * 2, playerPos.z);
-                spawnPos.y += 3f;
-                // Debug.Log($"SpawnPos: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
-
-                _playerTransform.position = spawnPos;
-                _playerTransform.gameObject.SetActive(true);
-            }
-            else
-            {
-                Debug.LogAssertion("failed to spawn player");
-            }
         }
 
         void Update()

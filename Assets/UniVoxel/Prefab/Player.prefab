@@ -162,6 +162,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6ae8629fdca6c440b4428134ffae368, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _sizes: {x: 0.8, y: 1.8, z: 0.8}
 --- !u!143 &5574234919001130894
 CharacterController:
   m_ObjectHideFlags: 0
@@ -173,8 +174,8 @@ CharacterController:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Height: 1.8
-  m_Radius: 0.4
+  m_Height: 2
+  m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
@@ -200,6 +201,7 @@ MonoBehaviour:
   _groundMask:
     serializedVersion: 2
     m_Bits: 256
+  _isMoveable: 1
 --- !u!1 &5574234920740900576
 GameObject:
   m_ObjectHideFlags: 0

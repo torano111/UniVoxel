@@ -24,8 +24,6 @@ namespace UniVoxel.Core
 
         void Start()
         {
-            _playerTransform.gameObject.SetActive(false);
-
             InitChunks();
             StartCoroutine("BuildChunks");
         }
@@ -72,10 +70,6 @@ namespace UniVoxel.Core
             yield return null;
 
             IsWorldInitialized = true;
-
-            var playerPos =_playerTransform.position;
-            _playerTransform.position = new Vector3(playerPos.z, playerPos.y + (_maxChunkPos.y + 1) * ChunkSize, playerPos.z);
-            _playerTransform.gameObject.SetActive(true);
 
             LogChunkMeshData();
         }

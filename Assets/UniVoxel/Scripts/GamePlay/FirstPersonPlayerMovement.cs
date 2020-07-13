@@ -1,13 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UniRx;
+using System;
 
 namespace UniVoxel.GamePlay
 {
     [RequireComponent(typeof(PlayerCore), typeof(CharacterController))]
     public class FirstPersonPlayerMovement : MonoBehaviour
     {
-        PlayerCore _player;
+        PlayerCore _playerCore;
         CharacterController _characterController;
 
         [SerializeField]
@@ -28,8 +30,6 @@ namespace UniVoxel.GamePlay
         [SerializeField]
         LayerMask _groundMask;
 
-        float _groundDistance = 0.4f;
-
         public Vector3 PlayerBottom
         {
             get
@@ -46,13 +46,12 @@ namespace UniVoxel.GamePlay
 
         [SerializeField]
         bool _isMoveable = true;
-        public bool IsMoveable { get => _isMoveable; set => _isMoveable = value; }
+        public bool IsMoveable { get => _isMoveable && _playerCore.IsInitialized; set => _isMoveable = value; }
 
         protected virtual void Awake()
         {
-            _player = GetComponent<PlayerCore>();
+            _playerCore = GetComponent<PlayerCore>();
             _characterController = GetComponent<CharacterController>();
-
         }
 
         protected virtual void Start()
@@ -63,6 +62,15 @@ namespace UniVoxel.GamePlay
             {
                 Cursor.lockState = CursorLockMode.Locked;
             }
+
+            _playerCore.IsInitializedRP
+                   .Where(initialized => initialized)
+                   .FirstOrDefault()
+                   .Subscribe(_ =>
+                   {
+                       _characterController.height = _playerCore.Sizes.y;
+                       _characterController.radius = (_playerCore.Sizes.x + _playerCore.Sizes.z) / 2f / 2f;
+                   });
         }
 
         // Update is called once per frame
@@ -98,7 +106,7 @@ namespace UniVoxel.GamePlay
 
         protected virtual bool CheckIfGounded()
         {
-            return Physics.CheckSphere(PlayerBottom, _groundDistance, _groundMask);
+            return Physics.CheckSphere(PlayerBottom, _characterController.radius * 2f / 3f, _groundMask);
         }
 
         protected virtual void UpdateRotation(float moveX, float moveY)
@@ -106,7 +114,7 @@ namespace UniVoxel.GamePlay
             var horizontalRotation = transform.localRotation * Quaternion.Euler(0f, moveX, 0f);
             var verticalRotation = _playerCamera.transform.localRotation * Quaternion.Euler(-moveY, 0f, 0f);
 
-            ClampRotationAroundXAxis(verticalRotation);
+            verticalRotation = ClampRotationAroundXAxis(verticalRotation);
 
             transform.localRotation = horizontalRotation;
             _playerCamera.transform.localRotation = verticalRotation;
