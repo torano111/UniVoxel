@@ -97,9 +97,9 @@ namespace UniVoxel.Core
             _meshRenderer.material = _material;
         }
 
-        public override void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)
+        public override void Initialize(WorldBase world, int chunkSize, float extent, Vector3Int position)
         {
-            base.Initialize(chunkHolder, chunkSize, extent, position);
+            base.Initialize(world, chunkSize, extent, position);
 
             InitBlocks();
         }
@@ -151,7 +151,7 @@ namespace UniVoxel.Core
                     }
                 }
 
-                if (_chunkHolder != null && _chunkHolder.TryGetNeighbourChunk(this, neighbourDirection, out var neighbourChunk))
+                if (_world != null && _world.TryGetNeighbourChunk(this, neighbourDirection, out var neighbourChunk))
                 {
                     if (!neighbourChunk.ContainBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z))
                     {

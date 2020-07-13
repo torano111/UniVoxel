@@ -26,11 +26,11 @@ namespace UniVoxel.Core
 
         protected bool IsUpdateMeshPropertiesJobCompleted = true;
 
-        public override void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)
+        public override void Initialize(WorldBase world, int chunkSize, float extent, Vector3Int position)
         {
             _isInitialized.Value = false;
 
-            this._chunkHolder = chunkHolder;
+            this._world = world;
             this.Size = chunkSize;
             this.Extent = extent;
             this.Position = position;

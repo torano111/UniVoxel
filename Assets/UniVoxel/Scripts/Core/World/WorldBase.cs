@@ -5,7 +5,7 @@ using UniVoxel.Utility;
 
 namespace UniVoxel.Core
 {
-    public class WorldBase : MonoBehaviour, IChunkHolder
+    public class WorldBase : MonoBehaviour
     {
         [SerializeField]
         WorldSettings _worldSettings;

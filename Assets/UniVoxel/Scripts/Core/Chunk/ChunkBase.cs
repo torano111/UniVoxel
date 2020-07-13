@@ -17,7 +17,7 @@ namespace UniVoxel.Core
         public int GetChunkSize() => Size;
 
         protected Block[] _blocks;
-        protected IChunkHolder _chunkHolder;
+        protected WorldBase _world;
 
         bool _needsUpdate;
         public bool NeedsUpdate { get => _needsUpdate && IsInitialized.Value; set => _needsUpdate = value; }
@@ -30,9 +30,9 @@ namespace UniVoxel.Core
 
         public bool IsUpdatingChunk { get => IsUpdatingChunkRP.Value; protected set => _isUpdatingChunkRP.Value = value; }
 
-        public virtual void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position)
+        public virtual void Initialize(WorldBase world, int chunkSize, float extent, Vector3Int position)
         {
-            this._chunkHolder = chunkHolder;
+            this._world = world;
             this.Size = chunkSize;
             this.Extent = extent;
             this.Position = position;
@@ -108,7 +108,7 @@ namespace UniVoxel.Core
             // check the neighbour block in a neighbour chunk if this chunk doesn't contain neighbour
             else
             {
-                if (_chunkHolder != null && _chunkHolder.TryGetNeighbourChunk(this, neighbourDirection, out var neighbourChunk))
+                if (_world != null && _world.TryGetNeighbourChunk(this, neighbourDirection, out var neighbourChunk))
                 {
                     // get difference between current pos and neighbour pos
                     var diff = neighbourBlockIndices - new Vector3Int(x, y, z);

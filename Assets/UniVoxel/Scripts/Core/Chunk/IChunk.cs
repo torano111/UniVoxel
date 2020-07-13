@@ -12,7 +12,7 @@ namespace UniVoxel.Core
         Vector3Int Position { get; }
         string Name { get; set; }
 
-        void Initialize(IChunkHolder chunkHolder, int chunkSize, float extent, Vector3Int position);
+        void Initialize(WorldBase chunkHolder, int chunkSize, float extent, Vector3Int position);
         IReadOnlyReactiveProperty<bool> IsInitialized { get; }
 
         IReadOnlyReactiveProperty<bool> IsUpdatingChunkRP { get; }
