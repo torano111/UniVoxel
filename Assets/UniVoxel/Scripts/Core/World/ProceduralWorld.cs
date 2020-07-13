@@ -21,7 +21,7 @@ namespace UniVoxel.Core
         ChunkPool _chunkPool;
 
         [SerializeField]
-        FirstPersonController _player;
+        Transform _playerTransform;
 
         bool _isInitialized = false;
 
@@ -30,42 +30,6 @@ namespace UniVoxel.Core
 
         [SerializeField]
         int _numChunksToSpawnInAFrame = 4;
-
-        void GetHighestSolidBlockIndices(float worldPosX, float worldPosZ, out ChunkBase chunk, out Vector3Int blockIndices)
-        {
-            var worldPosY = _player.transform.position.y + _ranges.y * ChunkSize;
-            var worldPos = new Vector3(worldPosX, worldPosY, worldPosZ);
-
-            while (true)
-            {
-                var cPos = GetChunkPositionAt(worldPos);
-
-                if (_chunks.TryGetValue(cPos, out var c))
-                {
-                    var diff = worldPos - cPos;
-                    var x = Mathf.FloorToInt(diff.x / (c.Extent * 2f));
-                    var z = Mathf.FloorToInt(diff.z / (c.Extent * 2f));
-
-                    // check vertical blocks at (x, z) in the chunk
-                    for (var y = c.Size - 1; y >= 0; y--)
-                    {
-                        if (c.IsSolid(x, y, z))
-                        {
-                            blockIndices = new Vector3Int(x, y, z);
-                            chunk = c;
-                            return;
-                        }
-                    }
-                }
-
-                worldPos.y -= ChunkSize;
-
-                if (worldPos.y < _player.transform.position.y - _ranges.y * ChunkSize)
-                {
-                    throw new System.InvalidOperationException("cannot find the chunk");
-                }
-            }
-        }
 
         void Start()
         {
@@ -77,7 +41,7 @@ namespace UniVoxel.Core
                     _chunkPool.Dispose();
                 });
 
-            _player.gameObject.SetActive(false);
+            _playerTransform.gameObject.SetActive(false);
             InitChunks();
             StartCoroutine("BuildInitialChunks");
         }
@@ -99,22 +63,23 @@ namespace UniVoxel.Core
                         // 0, -1, 1, -2, 2, ... -_ranges.y, _ranges.y
                         var posY = y == 0 ? y : (y % 2 == 1 ? -(y / 2 + 1) : y / 2);
 
-                        var chunkWorldPos = _player.transform.position + new Vector3(posX, posY, posZ) * ChunkSize;
-                        InitChunk(chunkWorldPos);
+                        var chunkWorldPos = _playerTransform.position + new Vector3(posX, posY, posZ) * ChunkSize;
+
+                        var cPos = GetChunkPositionAt(chunkWorldPos);
+
+                        InitChunk(cPos);
                     }
                 }
             }
         }
 
-        ChunkBase InitChunk(Vector3 worldPos)
+        ChunkBase InitChunk(Vector3Int cPos)
         {
-            var cPos = GetChunkPositionAt(worldPos);
-
             if (_chunks.TryGetValue(cPos, out var c))
             {
                 return c;
             }
-            
+
             var chunk = _chunkPool.Rent();
             chunk.transform.position = cPos;
             chunk.name = $"Chunk_{cPos.x}_{cPos.y}_{cPos.z}";
@@ -143,8 +108,9 @@ namespace UniVoxel.Core
                         // 0, -1, 1, -2, 2, ... -_ranges.y, _ranges.y
                         var posY = y == 0 ? y : (y % 2 == 1 ? -(y / 2 + 1) : y / 2);
 
-                        var chunkWorldPos = _player.transform.position + new Vector3(posX, posY, posZ) * ChunkSize;
-                        if (_chunks.TryGetValue(GetChunkPositionAt(chunkWorldPos), out var chunk))
+                        var chunkWorldPos = _playerTransform.position + new Vector3(posX, posY, posZ) * ChunkSize;
+                        var cPos = GetChunkPositionAt(chunkWorldPos);
+                        if (_chunks.TryGetValue(cPos, out var chunk))
                         {
                             chunk.MarkUpdate();
                             // wait for a frame
@@ -160,6 +126,7 @@ namespace UniVoxel.Core
 
             yield return null;
 
+            IsWorldInitialized = true;
             SpawnPlayer();
 
             _isInitialized = true;
@@ -167,15 +134,15 @@ namespace UniVoxel.Core
 
         void SpawnPlayer()
         {
-            var playerPos = _player.transform.position;
-            GetHighestSolidBlockIndices(playerPos.x, playerPos.z, out var chunk, out var blockIndices);
+            var playerPos = _playerTransform.position;
+            GetHighestSolidBlockIndices(playerPos, out var chunk, out var blockIndices);
             var spawnPos = new Vector3(playerPos.x, chunk.Position.y + blockIndices.y * chunk.Extent * 2, playerPos.z);
             spawnPos.y += 3f;
 
             // Debug.Log($"SpawnPos: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
 
-            _player.transform.position = spawnPos;
-            _player.gameObject.SetActive(true);
+            _playerTransform.position = spawnPos;
+            _playerTransform.gameObject.SetActive(true);
         }
 
         void Update()
@@ -208,7 +175,7 @@ namespace UniVoxel.Core
         {
             if (_chunksToReturn.Count == 0)
             {
-                var playerChunkPos = GetChunkPositionAt(_player.transform.position);
+                var playerChunkPos = GetChunkPositionAt(_playerTransform.position);
                 foreach (var chunk in _chunks.Values)
                 {
                     if (!IsInRange(playerChunkPos, chunk.Position))
@@ -236,7 +203,7 @@ namespace UniVoxel.Core
                             // 0, -1, 1, -2, 2, ... -_ranges.y, _ranges.y
                             var posY = y == 0 ? y : (y % 2 == 1 ? -(y / 2 + 1) : y / 2);
 
-                            var chunkWorldPos = _player.transform.position + new Vector3(posX, posY, posZ) * ChunkSize;
+                            var chunkWorldPos = _playerTransform.position + new Vector3(posX, posY, posZ) * ChunkSize;
                             var cPos = GetChunkPositionAt(chunkWorldPos);
 
                             if (!_chunks.ContainsKey(cPos))

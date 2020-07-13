@@ -43,6 +43,11 @@ namespace UniVoxel.GamePlay
         public Vector3 Velocity { get; protected set; }
 
         public bool IsGrounded { get; protected set; }
+
+        [SerializeField]
+        bool _isMoveable = true;
+        public bool IsMoveable { get => _isMoveable; set => _isMoveable = value; }
+
         protected virtual void Awake()
         {
             _player = GetComponent<PlayerCore>();
@@ -62,6 +67,14 @@ namespace UniVoxel.GamePlay
 
         // Update is called once per frame
         protected virtual void Update()
+        {
+            if (IsMoveable)
+            {
+                UpdatePlayerMovement();
+            }
+        }
+
+        protected virtual void UpdatePlayerMovement()
         {
             IsGrounded = CheckIfGounded();
 

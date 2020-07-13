@@ -121,18 +121,12 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &1104974189 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5964182197778504237, guid: fdddf4e85b0feac439384cbde1c87003,
+--- !u!4 &429146824 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5964182197778504215, guid: fdddf4e85b0feac439384cbde1c87003,
     type: 3}
   m_PrefabInstance: {fileID: 1684347844}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05ec5cf00ca181d45a42ba1870e148c3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1529972740
 GameObject:
   m_ObjectHideFlags: 0
@@ -167,7 +161,7 @@ MonoBehaviour:
   _maxChunkPos: {x: 2, y: 2, z: 2}
   _chunkPrefab: {fileID: 3933833454263794029, guid: ef96c4eac76c40b4c861672db6fac3ee,
     type: 3}
-  _player: {fileID: 1104974189}
+  _playerTransform: {fileID: 429146824}
 --- !u!4 &1529972742
 Transform:
   m_ObjectHideFlags: 0

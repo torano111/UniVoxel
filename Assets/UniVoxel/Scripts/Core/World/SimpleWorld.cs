@@ -20,11 +20,11 @@ namespace UniVoxel.Core
         ChunkBase _chunkPrefab;
 
         [SerializeField]
-        FirstPersonController _player;
+        Transform _playerTransform;
 
         void Start()
         {
-            _player.gameObject.SetActive(false);
+            _playerTransform.gameObject.SetActive(false);
 
             InitChunks();
             StartCoroutine("BuildChunks");
@@ -71,9 +71,11 @@ namespace UniVoxel.Core
 
             yield return null;
 
-            var playerPos = _player.transform.position;
-            _player.transform.position = new Vector3(playerPos.z, playerPos.y + (_maxChunkPos.y + 1) * ChunkSize, playerPos.z);
-            _player.gameObject.SetActive(true);
+            IsWorldInitialized = true;
+
+            var playerPos =_playerTransform.position;
+            _playerTransform.position = new Vector3(playerPos.z, playerPos.y + (_maxChunkPos.y + 1) * ChunkSize, playerPos.z);
+            _playerTransform.gameObject.SetActive(true);
 
             LogChunkMeshData();
         }
