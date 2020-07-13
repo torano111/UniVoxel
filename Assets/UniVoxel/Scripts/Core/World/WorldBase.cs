@@ -10,6 +10,9 @@ namespace UniVoxel.Core
     public abstract class WorldBase : MonoBehaviour
     {
         [SerializeField]
+        LayerMask _chunkMask;
+
+        [SerializeField]
         WorldSettings _worldSettings;
 
         public WorldData WorldSettingsData => _worldSettings.Data;
@@ -26,7 +29,7 @@ namespace UniVoxel.Core
 
         public Vector3Int MaxChunkPosition
         {
-            get 
+            get
             {
                 Vector3Int max = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
                 foreach (var chunk in _chunks.Keys)
@@ -40,7 +43,7 @@ namespace UniVoxel.Core
 
         public Vector3Int MinChunkPosition
         {
-            get 
+            get
             {
                 Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
                 foreach (var chunk in _chunks.Keys)
@@ -120,6 +123,40 @@ namespace UniVoxel.Core
                     throw new System.InvalidOperationException("cannot find the chunk");
                 }
             }
+        }
+        public bool BoxCastAndGetHighestSolidBlockIndices(Vector3 worldPos, Vector3 boxExtents, out ChunkBase chunk, out Vector3Int blockIndices)
+        {
+            worldPos.y = WorldSettingsData.MaxCoordinates.y;
+            var distance = Mathf.Abs(WorldSettingsData.MaxCoordinates.y - WorldSettingsData.MinCoordinates.y);
+            if (Physics.BoxCast(worldPos, boxExtents, Vector3.down, out var hitInfo, Quaternion.identity, distance, _chunkMask))
+            {
+                var blockWorldPos = worldPos + Vector3.down * hitInfo.distance;
+                blockWorldPos.y -= boxExtents.y + Extent * 0.1f;
+
+                var hasChunk = TryGetChunkAt(blockWorldPos, out chunk);
+
+                if (hasChunk)
+                {
+                    blockIndices = chunk.GetBlockIndicesAt(blockWorldPos);
+
+                    if (chunk.TryGetBlock(blockIndices.x, blockIndices.y, blockIndices.z, out var block))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        Debug.LogAssertion($"BoxCast succeeded and chunk found, but block not found: blockWorldPos={blockWorldPos}");
+                    }
+                }
+                else
+                {
+                    Debug.LogAssertion($"BoxCast succeeded but chunk not found: blockWorldPos={blockWorldPos}");
+                }
+            }
+
+            chunk = null;
+            blockIndices = default(Vector3Int);
+            return false;
         }
     }
 }

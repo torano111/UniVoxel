@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3933833454263794003}
   - component: {fileID: 3933833454263794002}
   - component: {fileID: 3933833454263794029}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: JobPerlinNoiseChunk
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -113,4 +113,3 @@ MonoBehaviour:
   _blockDataObject: {fileID: 11400000, guid: 76cdb663c8cc2b64987e6f64b4e1059e, type: 2}
   _singleTextureLengths: {x: 16, y: 16}
   _textureAtlasLengths: {x: 256, y: 256}
-  _accurateSolidCheck: 1

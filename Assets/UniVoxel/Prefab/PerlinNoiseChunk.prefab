@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1027249157957628562}
   - component: {fileID: 226225701842173285}
   - component: {fileID: 5130475949019091047}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: PerlinNoiseChunk
   m_TagString: Untagged
   m_Icon: {fileID: 0}

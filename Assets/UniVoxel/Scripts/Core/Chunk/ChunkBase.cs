@@ -56,6 +56,17 @@ namespace UniVoxel.Core
             return false;
         }
 
+        
+        public virtual Vector3Int GetBlockIndicesAt(Vector3 worldPos)
+        {
+            worldPos -= Position;
+            var x = Mathf.RoundToInt(worldPos.x / (Extent * 2f));
+            var y = Mathf.RoundToInt(worldPos.y / (Extent * 2f));
+            var z = Mathf.RoundToInt(worldPos.z / (Extent * 2f));
+
+            return new Vector3Int(x, y, z);
+        }
+
         public virtual bool ContainBlock(int x, int y, int z)
         {
             return IsInitialized.Value && _blocks != null && 0 <= x && x < Size && 0 <= y && y < Size && 0 <= z && z < Size;

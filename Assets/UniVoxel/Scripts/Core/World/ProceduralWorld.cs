@@ -135,14 +135,21 @@ namespace UniVoxel.Core
         void SpawnPlayer()
         {
             var playerPos = _playerTransform.position;
-            GetHighestSolidBlockIndices(playerPos, out var chunk, out var blockIndices);
-            var spawnPos = new Vector3(playerPos.x, chunk.Position.y + blockIndices.y * chunk.Extent * 2, playerPos.z);
-            spawnPos.y += 3f;
+            // GetHighestSolidBlockIndices(playerPos, out var chunk, out var blockIndices);
 
-            // Debug.Log($"SpawnPos: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
+            if (BoxCastAndGetHighestSolidBlockIndices(playerPos, new Vector3(0.45f, 2f, 0.45f), out var chunk, out var blockIndices))
+            {
+                var spawnPos = new Vector3(playerPos.x, chunk.Position.y + blockIndices.y * chunk.Extent * 2, playerPos.z);
+                spawnPos.y += 3f;
+                // Debug.Log($"SpawnPos: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
 
-            _playerTransform.position = spawnPos;
-            _playerTransform.gameObject.SetActive(true);
+                _playerTransform.position = spawnPos;
+                _playerTransform.gameObject.SetActive(true);
+            }
+            else
+            {
+                Debug.LogAssertion("failed to spawn player");
+            }
         }
 
         void Update()
