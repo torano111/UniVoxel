@@ -106,7 +106,7 @@ namespace UniVoxel.GamePlay
 
         protected virtual bool CheckIfGounded()
         {
-            return Physics.CheckSphere(PlayerBottom, _characterController.radius * 2f / 3f, _groundMask);
+            return Physics.CheckSphere(PlayerBottom, _characterController.radius / 2f, _groundMask);
         }
 
         protected virtual void UpdateRotation(float moveX, float moveY)

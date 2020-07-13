@@ -21,8 +21,12 @@ namespace UniVoxel.GamePlay
 
         public bool IsInitialized { get => IsInitializedRP.Value; protected set => _isInitializedRP.Value = value; }
 
+        public CharacterController CharacterController;
+
         protected virtual void Awake()
         {
+            CharacterController = GetComponent<CharacterController>();
+
             if (World == null)
             {
                 Debug.Log("Player could not find the world");
@@ -58,10 +62,16 @@ namespace UniVoxel.GamePlay
             if (World.BoxCastAndGetHighestSolidBlockIndices(pos, Sizes / 2f, out var chunk, out var blockIndices))
             {
                 var spawnPos = new Vector3(pos.x, chunk.Position.y + blockIndices.y * chunk.Extent * 2, pos.z);
-                spawnPos.y += 3f;
-                // Debug.Log($"SpawnPos: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
+                Debug.Log($"Spawn Player: {spawnPos}, Chunk: {chunk.Name}, BlockIndices: {blockIndices.ToString()}");
 
-                transform.SetPositionAndRotation(spawnPos, transform.rotation);
+                if (CharacterController)
+                {
+                    CharacterController.Move(spawnPos - pos);
+                }
+                else
+                {
+                    transform.SetPositionAndRotation(spawnPos, transform.rotation);
+                }
                 transform.gameObject.SetActive(true);
             }
             else
