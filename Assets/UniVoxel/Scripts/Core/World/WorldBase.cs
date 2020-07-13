@@ -7,7 +7,7 @@ using System;
 
 namespace UniVoxel.Core
 {
-    public abstract class WorldBase : MonoBehaviour
+    public abstract class WorldBase : SingletonMonoBehaviour<WorldBase>
     {
         [SerializeField]
         LayerMask _chunkMask;
@@ -55,6 +55,11 @@ namespace UniVoxel.Core
             }
         }
 
+        protected override void Awake()
+        {
+            base.Awake();
+        }
+
         public virtual bool TryGetNeighbourChunk(IChunk chunk, BoxFaceSide neighbourDirection, out IChunk neighbourChunk)
         {
             var neighbourChunkPos = BlockUtility.GetNeighbourPosition(chunk.Position.x, chunk.Position.y, chunk.Position.z, neighbourDirection, ChunkSize);
@@ -89,7 +94,7 @@ namespace UniVoxel.Core
             return pos;
         }
 
-        public void GetHighestSolidBlockIndices(Vector3 worldPos, out ChunkBase chunk, out Vector3Int blockIndices)
+        public void CalculateHighestSolidBlockIndices(Vector3 worldPos, out ChunkBase chunk, out Vector3Int blockIndices)
         {
             worldPos.y = MaxChunkPosition.y;
 
@@ -124,6 +129,7 @@ namespace UniVoxel.Core
                 }
             }
         }
+
         public bool BoxCastAndGetHighestSolidBlockIndices(Vector3 worldPos, Vector3 boxExtents, out ChunkBase chunk, out Vector3Int blockIndices)
         {
             worldPos.y = WorldSettingsData.MaxCoordinates.y;

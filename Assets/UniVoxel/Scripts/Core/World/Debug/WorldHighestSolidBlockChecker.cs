@@ -8,8 +8,7 @@ namespace UniVoxel.Core.Debugging
 {
     public class WorldHighestSolidBlockChecker : MonoBehaviour
     {
-        [SerializeField]
-        WorldBase _world;
+        protected WorldBase World => WorldBase.Instance;
 
         [SerializeField]
         bool _checkBoxCast = true;
@@ -27,7 +26,7 @@ namespace UniVoxel.Core.Debugging
 
         void Awake()
         {
-            _world.IsWorldInitializedRP
+            World.IsWorldInitializedRP
                   .Subscribe(initialized => IsCheckingHighestSolidBlock = initialized);
         }
 
@@ -38,8 +37,8 @@ namespace UniVoxel.Core.Debugging
                 if (_checkBoxCast)
                 {
                     var worldPos = transform.position;
-                    worldPos.y = _world.WorldSettingsData.MaxCoordinates.y;
-                    var maxDistance = Mathf.Abs(_world.WorldSettingsData.MaxCoordinates.y - _world.WorldSettingsData.MinCoordinates.y);
+                    worldPos.y = World.WorldSettingsData.MaxCoordinates.y;
+                    var maxDistance = Mathf.Abs(World.WorldSettingsData.MaxCoordinates.y - World.WorldSettingsData.MinCoordinates.y);
                     var hit = Physics.BoxCast(worldPos, _boxExtents, Vector3.down, out var hitInfo, Quaternion.identity, maxDistance, _chunkMask);
 
                     if (hit)

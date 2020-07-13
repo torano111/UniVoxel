@@ -407,6 +407,11 @@ PrefabInstance:
       propertyPath: _world
       value: 
       objectReference: {fileID: 1202046511}
+    - target: {fileID: 7954560329808202178, guid: 1780e2f7a9105e2408e576fe8e08ef39,
+        type: 3}
+      propertyPath: _outputLog
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7954560329808202179, guid: 1780e2f7a9105e2408e576fe8e08ef39,
         type: 3}
       propertyPath: m_Name

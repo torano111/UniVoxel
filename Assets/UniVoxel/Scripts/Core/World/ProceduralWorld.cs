@@ -135,7 +135,6 @@ namespace UniVoxel.Core
         void SpawnPlayer()
         {
             var playerPos = _playerTransform.position;
-            // GetHighestSolidBlockIndices(playerPos, out var chunk, out var blockIndices);
 
             if (BoxCastAndGetHighestSolidBlockIndices(playerPos, new Vector3(0.45f, 2f, 0.45f), out var chunk, out var blockIndices))
             {
