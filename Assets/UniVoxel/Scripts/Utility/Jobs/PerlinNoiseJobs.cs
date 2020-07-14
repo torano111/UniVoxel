@@ -541,20 +541,29 @@ namespace UniVoxel.Utility.Jobs
     [BurstCompile]
     public struct SolidBlockQueueToListJob : IJob
     {
-        NativeQueue<SolidBlockData> SolidBlockQueue;
+        public NativeQueue<SolidBlockData> SolidBlockQueue;
 
-        NativeList<SolidBlockData> SolidBlockList;
+        public NativeList<SolidBlockData> SolidBlockList;
 
-        NativeList<float3> Vertices;
+        public NativeList<float3> Vertices;
 
-        NativeList<ushort> Triangles;
+        public NativeList<ushort> Triangles;
 
-        NativeList<float2> UV;
+        public NativeList<float2> UV;
 
         public void Execute()
         {
             var totalSolidBlockCount = SolidBlockQueue.Count;
-            SolidBlockList.Capacity = totalSolidBlockCount;
+
+            if (totalSolidBlockCount == 0)
+            {
+                return;
+            }
+
+            if (SolidBlockList.Length <= totalSolidBlockCount)
+            {
+                SolidBlockList.Capacity = totalSolidBlockCount;
+            }
 
             var solidFaceCount = 0;
             while (SolidBlockQueue.TryDequeue(out var solidBlock))
@@ -581,7 +590,7 @@ namespace UniVoxel.Utility.Jobs
     /// Use CalculateSolidBlocksParallelJob, SolidBlockQueueToListJob, and CalculateMeshFromSolidBlockListParallelJob in this order, to calculate mesh properties from blocks.
     /// </summary>
     [BurstCompile]
-    public struct CalculateMeshFromSolidBlockListParallelJob : IJobParallelFor
+    public struct CalculateMeshFromSolidBlockListParallelJob : IJobParallelForDefer
     {
         // length should be 1
         [ReadOnly]
@@ -597,13 +606,16 @@ namespace UniVoxel.Utility.Jobs
         public NativeArray<Block> Blocks;
 
         [WriteOnly]
-        public NativeList<float3> Vertices;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float3> Vertices;
 
         [WriteOnly]
-        public NativeList<ushort> Triangles;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<ushort> Triangles;
 
         [WriteOnly]
-        public NativeList<float2> UV0;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float2> UV0;
 
         // length should be 1
         [ReadOnly]
@@ -635,7 +647,7 @@ namespace UniVoxel.Utility.Jobs
             var center = (float3)blockPos * extent * 2.0f;
 
             var quadCount = solidBlock.SolidFaceCountBefore;
-            for (var i = CalculateBlockFacesJobHelper.StartFaceSideIndex; i < CalculateBlockFacesJobHelper.EndFaceSideIndex; i++)
+            for (var i = CalculateBlockFacesJobHelper.StartFaceSideIndex; i <= CalculateBlockFacesJobHelper.EndFaceSideIndex; i++)
             {
                 var mask = 1 << i;
                 if ((solidBlock.SolidFaceMask & mask) == mask)

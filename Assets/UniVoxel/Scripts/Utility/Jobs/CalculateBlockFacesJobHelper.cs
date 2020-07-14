@@ -39,6 +39,7 @@ namespace UniVoxel.Utility
                 case BoxFaceSide.Left:
                     return 5;
                 default:
+                    Debug.LogError("The side is neither Front, Back, Top, Bottom, Right or Left");
                     return -1;
             }
         }
@@ -58,8 +59,10 @@ namespace UniVoxel.Utility
                 case 4:
                     return BoxFaceSide.Right;
                 case 5:
-                default:
                     return BoxFaceSide.Left;
+                default:
+                    Debug.LogError("The value is neither 0, 1, 2, 3, 4, or 5");
+                    return BoxFaceSide.Back;
             }
         }
     }
