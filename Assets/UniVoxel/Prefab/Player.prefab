@@ -163,6 +163,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sizes: {x: 0.8, y: 1.8, z: 0.8}
+  CharacterController: {fileID: 0}
 --- !u!143 &5574234919001130894
 CharacterController:
   m_ObjectHideFlags: 0
@@ -194,8 +195,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hideCursor: 1
-  _mouseSensitivityX: 200
-  _mouseSensitivityY: 200
+  _mouseSensitivityX: 1
+  _mouseSensitivityY: 1
   _moveSpeed: 6
   _jumpHeight: 1
   _groundMask:

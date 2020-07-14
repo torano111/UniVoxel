@@ -15,5 +15,5 @@ MonoBehaviour:
   _data:
     _minCoordinates: {x: -30000000, y: -200, z: -30000000}
     _maxCoordinates: {x: 30000000, y: 100, z: 30000000}
-    _chunkSize: 16
+    _chunkSize: 32
     _extent: 0.5

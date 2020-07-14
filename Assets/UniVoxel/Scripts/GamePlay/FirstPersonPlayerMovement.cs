@@ -48,6 +48,10 @@ namespace UniVoxel.GamePlay
         bool _isMoveable = true;
         public bool IsMoveable { get => _isMoveable && _playerCore.IsInitialized; set => _isMoveable = value; }
 
+        protected Vector2 _movementInput;
+        protected Vector2 _rotationInput;
+        protected bool _jumpInput;
+
         protected virtual void Awake()
         {
             _playerCore = GetComponent<PlayerCore>();
@@ -76,32 +80,52 @@ namespace UniVoxel.GamePlay
         // Update is called once per frame
         protected virtual void Update()
         {
+            UpdateInput();
+
+            IsGrounded = CheckIfGounded();
+
+            UpdateRotation();
+
             if (IsMoveable)
             {
-                UpdatePlayerMovement();
+                UpdatePlayerMovement(Time.deltaTime);
             }
         }
 
-        protected virtual void UpdatePlayerMovement()
+        protected virtual void UpdateInput()
         {
-            IsGrounded = CheckIfGounded();
+            _movementInput.x = Input.GetAxis("Horizontal");
+            _movementInput.y = Input.GetAxis("Vertical");
+
+            _rotationInput.x = Input.GetAxis("Mouse X") * _mouseSensitivityX;
+            _rotationInput.y = Input.GetAxis("Mouse Y") * _mouseSensitivityY;
+
+            _jumpInput = Input.GetButtonDown("Jump");
+        }
+
+        protected virtual void UpdateRotation()
+        {
+            var horizontalRotation = transform.localRotation * Quaternion.Euler(0f, _rotationInput.x, 0f);
+            var verticalRotation = _playerCamera.transform.localRotation * Quaternion.Euler(-_rotationInput.y, 0f, 0f);
+
+            verticalRotation = ClampRotationAroundXAxis(verticalRotation);
+
+            transform.localRotation = horizontalRotation;
+            _playerCamera.transform.localRotation = verticalRotation;
+        }
+
+        protected virtual void UpdatePlayerMovement(float deltaTime)
+        {
 
             if (IsGrounded && Velocity.y < 0f)
             {
                 Velocity = new Vector3(0, -2f, 0);
             }
 
-            var mouseX = Input.GetAxis("Mouse X") * _mouseSensitivityX * Time.deltaTime;
-            var mouseY = Input.GetAxis("Mouse Y") * _mouseSensitivityY * Time.deltaTime;
+            var move = CalculateMovementFromInput(deltaTime);
+            move += ApplyVelocity(deltaTime);
 
-            UpdateRotation(mouseX, mouseY);
-
-            var horizontal = Input.GetAxis("Horizontal");
-            var vertical = Input.GetAxis("Vertical");
-
-            Move(horizontal, vertical);
-
-            ApplyVelocity();
+            _characterController.Move(move);
         }
 
         protected virtual bool CheckIfGounded()
@@ -109,16 +133,6 @@ namespace UniVoxel.GamePlay
             return Physics.CheckSphere(PlayerBottom, _characterController.radius / 2f, _groundMask);
         }
 
-        protected virtual void UpdateRotation(float moveX, float moveY)
-        {
-            var horizontalRotation = transform.localRotation * Quaternion.Euler(0f, moveX, 0f);
-            var verticalRotation = _playerCamera.transform.localRotation * Quaternion.Euler(-moveY, 0f, 0f);
-
-            verticalRotation = ClampRotationAroundXAxis(verticalRotation);
-
-            transform.localRotation = horizontalRotation;
-            _playerCamera.transform.localRotation = verticalRotation;
-        }
 
         protected Quaternion ClampRotationAroundXAxis(Quaternion q)
         {
@@ -136,29 +150,29 @@ namespace UniVoxel.GamePlay
             return q;
         }
 
-        protected virtual void Move(float rightMove, float forwardMove)
+        protected virtual Vector3 CalculateMovementFromInput(float deltaTime)
         {
-            var move = transform.right * rightMove + transform.forward * forwardMove;
+            var move = transform.right * _movementInput.x + transform.forward * _movementInput.y;
 
-            _characterController.Move(move.normalized * _moveSpeed * Time.deltaTime);
+            return move.normalized * _moveSpeed * deltaTime;
         }
 
-        protected virtual void ApplyVelocity()
+        protected virtual Vector3 ApplyVelocity(float deltaTime)
         {
-            if (Input.GetButtonDown("Jump") && IsGrounded)
+            if (_jumpInput && IsGrounded)
             {
                 Jump();
             }
 
-            ApplyGravity();
+            ApplyGravity(deltaTime);
 
-            // s = v0 * t + 1/2 * a * t^2 so the value given should be multiplied by Time.deltaTime again
-            _characterController.Move(Velocity * Time.deltaTime);
+            // s = v0 * t + 1/2 * a * t^2 so the value given should be multiplied by deltaTime again
+            return Velocity * deltaTime;
         }
 
-        protected virtual void ApplyGravity()
+        protected virtual void ApplyGravity(float deltaTime)
         {
-            Velocity += Physics.gravity * Time.deltaTime;
+            Velocity += Physics.gravity * deltaTime;
         }
 
         // velocity = sqrt(jumpHeight * -2 * gravity)

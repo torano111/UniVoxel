@@ -203,6 +203,16 @@ PrefabInstance:
       propertyPath: _jumpHeight
       value: 0.9
       objectReference: {fileID: 0}
+    - target: {fileID: 5574234919001130895, guid: 1223456bdbedd3e4997f5762da36f23b,
+        type: 3}
+      propertyPath: _mouseSensitivityX
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5574234919001130895, guid: 1223456bdbedd3e4997f5762da36f23b,
+        type: 3}
+      propertyPath: _mouseSensitivityY
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1223456bdbedd3e4997f5762da36f23b, type: 3}
 --- !u!4 &161386478 stripped
