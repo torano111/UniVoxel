@@ -32,7 +32,7 @@ namespace UniVoxel.Core
 
         protected CalculateBlocksParallelJob InitBlocksJob;
 
-        protected CalculateMeshPropertiesParallelJob MeshPropertiesJob;
+        protected CalculateMeshWithCounterParallelJob CalculateMeshJob;
 
         protected NativeArray<PerlinNoise2DData> NativeNoise2D;
         protected NativeArray<PerlinNoise3DData> NativeNoise3D;
@@ -239,7 +239,7 @@ namespace UniVoxel.Core
         {
             Counter.Count = 0;
 
-            MeshPropertiesJob = new CalculateMeshPropertiesParallelJob()
+            CalculateMeshJob = new CalculateMeshWithCounterParallelJob()
             {
                 Noise2D = NativeNoise2D,
                 Noise3D = NativeNoise3D,
@@ -257,7 +257,7 @@ namespace UniVoxel.Core
                 TextureAtlasLenghts = NativeTextureAtlasLenghts,
             };
 
-            dependency = MeshPropertiesJob.Schedule(_blocks.Length, 0, dependency);
+            dependency = CalculateMeshJob.Schedule(_blocks.Length, 0, dependency);
 
             return dependency;
         }
@@ -269,9 +269,9 @@ namespace UniVoxel.Core
 
         void DisposeOnCompleteUpdateMeshPropertiesJob()
         {
-            if (MeshPropertiesJob.Blocks.IsCreated)
+            if (CalculateMeshJob.Blocks.IsCreated)
             {
-                MeshPropertiesJob.Blocks.Dispose();
+                CalculateMeshJob.Blocks.Dispose();
             }
         }
 
