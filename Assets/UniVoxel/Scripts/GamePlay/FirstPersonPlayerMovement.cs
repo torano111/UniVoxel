@@ -45,6 +45,11 @@ namespace UniVoxel.GamePlay
         public bool IsGrounded { get; protected set; }
 
         [SerializeField]
+        bool _isRotateable = true;
+        public bool IsRotateable { get => _isRotateable && _playerCore.IsInitialized; set => _isRotateable = value; }
+
+
+        [SerializeField]
         bool _isMoveable = true;
         public bool IsMoveable { get => _isMoveable && _playerCore.IsInitialized; set => _isMoveable = value; }
 
@@ -84,7 +89,10 @@ namespace UniVoxel.GamePlay
 
             IsGrounded = CheckIfGounded();
 
-            UpdateRotation();
+            if (IsRotateable)
+            {
+                UpdateRotation();
+            }
 
             if (IsMoveable)
             {

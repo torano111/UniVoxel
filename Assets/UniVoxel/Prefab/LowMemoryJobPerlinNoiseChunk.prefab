@@ -109,7 +109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _perlinNoiseSettings: {fileID: 11400000, guid: c18435f026a5c1b4e8cb83b71210143b,
     type: 2}
-  _material: {fileID: 2100000, guid: f1a3e06e5222d1e4c8b6f67a0435baae, type: 2}
+  _material: {fileID: 2100000, guid: 4aa5bac16cd80dc4193c38a20dcd0548, type: 2}
   _blockDataObject: {fileID: 11400000, guid: 76cdb663c8cc2b64987e6f64b4e1059e, type: 2}
   _singleTextureLengths: {x: 16, y: 16}
   _textureAtlasLengths: {x: 256, y: 256}
