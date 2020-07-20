@@ -21,6 +21,7 @@ namespace UniVoxel.Core
         int GetChunkSize();
         bool TryGetBlock(int x, int y, int z, out Block block);
         Vector3Int GetBlockIndicesAt(Vector3 worldPos);
+        bool IsBlockOnEdge(int x, int y, int z);
         bool ContainBlock(int x, int y, int z);
         bool IsSolid(int x, int y, int z);
         bool GetNeedsUpdate();

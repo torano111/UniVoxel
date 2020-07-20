@@ -66,6 +66,11 @@ namespace UniVoxel.Core
 
             return new Vector3Int(x, y, z);
         }
+        
+        public bool IsBlockOnEdge(int x, int y, int z)
+        {
+            return x == 0 || x == Size - 1 || y == 0 || y == Size - 1 || z == 0 || z == Size - 1;
+        }
 
         public virtual bool ContainBlock(int x, int y, int z)
         {

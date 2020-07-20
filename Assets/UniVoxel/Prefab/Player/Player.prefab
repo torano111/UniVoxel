@@ -127,6 +127,7 @@ GameObject:
   - component: {fileID: 5574234919001130893}
   - component: {fileID: 5574234919001130894}
   - component: {fileID: 5574234919001130895}
+  - component: {fileID: 5298577293210248981}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -163,6 +164,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sizes: {x: 0.8, y: 1.8, z: 0.8}
+  _playerCamera: {fileID: 0}
   CharacterController: {fileID: 0}
 --- !u!143 &5574234919001130894
 CharacterController:
@@ -204,6 +206,24 @@ MonoBehaviour:
     m_Bits: 256
   _isRotateable: 1
   _isMoveable: 1
+--- !u!114 &5298577293210248981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5574234919001130888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfcdf0cbd3711d8478fd7b96f9072c96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _editMode: 1
+  _blockType: 0
+  _chunkMask:
+    serializedVersion: 2
+    m_Bits: 256
+  _maxEditDistance: 10
 --- !u!1 &5574234920740900576
 GameObject:
   m_ObjectHideFlags: 0

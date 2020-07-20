@@ -152,12 +152,16 @@ namespace UniVoxel.Core
 
             if (NeedsUpdate && IsUpdateMeshPropertiesJobCompleted)
             {
+                // Debug.Log($"JobChunkBase: Schedule UpdateMeshPropertiesJob({Name})");
+
                 IsUpdateMeshPropertiesJobCompleted = false;
                 IsUpdatingChunk = true;
                 JobHandle = ScheduleUpdateMeshPropertiesJob(JobHandle);
             }
             else if (NeedsUpdate)
             {
+                // Debug.Log($"JobChunkBase: Complete UpdateMeshPropertiesJob({Name})");
+
                 this.NeedsUpdate = false;
                 IsUpdateMeshPropertiesJobCompleted = true;
                 CompleteUpdateMeshPropertiesJob();

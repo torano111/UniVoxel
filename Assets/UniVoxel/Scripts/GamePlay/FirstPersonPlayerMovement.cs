@@ -38,8 +38,6 @@ namespace UniVoxel.GamePlay
             }
         }
 
-        Camera _playerCamera;
-
         public Vector3 Velocity { get; protected set; }
 
         public bool IsGrounded { get; protected set; }
@@ -65,8 +63,6 @@ namespace UniVoxel.GamePlay
 
         protected virtual void Start()
         {
-            _playerCamera = Camera.main;
-
             if (_hideCursor)
             {
                 Cursor.lockState = CursorLockMode.Locked;
@@ -114,12 +110,12 @@ namespace UniVoxel.GamePlay
         protected virtual void UpdateRotation()
         {
             var horizontalRotation = transform.localRotation * Quaternion.Euler(0f, _rotationInput.x, 0f);
-            var verticalRotation = _playerCamera.transform.localRotation * Quaternion.Euler(-_rotationInput.y, 0f, 0f);
+            var verticalRotation = _playerCore.PlayerCamera.transform.localRotation * Quaternion.Euler(-_rotationInput.y, 0f, 0f);
 
             verticalRotation = ClampRotationAroundXAxis(verticalRotation);
 
             transform.localRotation = horizontalRotation;
-            _playerCamera.transform.localRotation = verticalRotation;
+            _playerCore.PlayerCamera.transform.localRotation = verticalRotation;
         }
 
         protected virtual void UpdatePlayerMovement(float deltaTime)

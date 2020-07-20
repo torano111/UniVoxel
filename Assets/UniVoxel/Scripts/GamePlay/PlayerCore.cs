@@ -9,12 +9,28 @@ namespace UniVoxel.GamePlay
 {
     public class PlayerCore : MonoBehaviour
     {
+        protected WorldBase World => WorldBase.Instance;
+        
         [SerializeField]
         Vector3 _sizes = new Vector3(0.8f, 1.8f, 0.8f);
 
         public Vector3 Sizes => _sizes;
 
-        protected WorldBase World => WorldBase.Instance;
+        [SerializeField]
+        Camera _playerCamera;
+
+        public Camera PlayerCamera 
+        {
+            get 
+            {
+                if (_playerCamera == null)
+                {
+                    _playerCamera = Camera.main;
+                }
+
+                return _playerCamera;
+            }
+        }
 
         ReactiveProperty<bool> _isInitializedRP = new ReactiveProperty<bool>(false);
         public IReadOnlyReactiveProperty<bool> IsInitializedRP => _isInitializedRP;
