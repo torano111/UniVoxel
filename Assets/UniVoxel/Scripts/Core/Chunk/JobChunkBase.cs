@@ -22,7 +22,18 @@ namespace UniVoxel.Core
 
         protected Mesh _mesh;
 
-        protected JobHandle JobHandle;
+        public JobHandle InitJobHandle { get; protected set; }
+        public JobHandle UpdateMeshJobHandle { get; protected set; }
+
+        public void AddDependencyToInitJobHandle(JobHandle dependency)
+        {
+            JobHandle.CombineDependencies(InitJobHandle, dependency);
+        }
+
+        public void AddDependencyToUpdateMeshJobHandle(JobHandle dependency)
+        {
+            JobHandle.CombineDependencies(UpdateMeshJobHandle, dependency);
+        }
 
         protected bool IsUpdateMeshPropertiesJobCompleted = true;
 
@@ -45,7 +56,8 @@ namespace UniVoxel.Core
             }
 
             // Debug.Log($"chunk({Name}): schedule init blocks job");
-            JobHandle = ScheduleInitializeBlocksJob();
+            AddDependencyToInitJobHandle(UpdateMeshJobHandle);
+            InitJobHandle = ScheduleInitializeBlocksJob(InitJobHandle);
         }
 
         protected virtual void InitializePersistentNativeArrays() { }
@@ -54,7 +66,7 @@ namespace UniVoxel.Core
 
         protected virtual void CompleteInitializeBlocksJob()
         {
-            JobHandle.Complete();
+            InitJobHandle.Complete();
             OnCompleteInitializeBlocksJob();
             _isInitialized.Value = true;
         }
@@ -65,7 +77,8 @@ namespace UniVoxel.Core
 
         protected virtual void OnDestroy()
         {
-            JobHandle.Complete();
+            InitJobHandle.Complete();
+            UpdateMeshJobHandle.Complete();
 
             DisposeOnDestroy();
         }
@@ -136,7 +149,7 @@ namespace UniVoxel.Core
 
         protected void CompleteUpdateMeshPropertiesJob()
         {
-            JobHandle.Complete();
+            UpdateMeshJobHandle.Complete();
             UpdateChunk(true);
 
             OnCompleteUpdateMeshPropertiesJob();
@@ -147,26 +160,54 @@ namespace UniVoxel.Core
             if (!IsInitialized.Value)
             {
                 CompleteInitializeBlocksJob();
-                IsUpdateMeshPropertiesJobCompleted = true;
             }
 
-            if (NeedsUpdate && IsUpdateMeshPropertiesJobCompleted)
+            if (IsUpdatingChunk)
             {
-                // Debug.Log($"JobChunkBase: Schedule UpdateMeshPropertiesJob({Name})");
-
-                IsUpdateMeshPropertiesJobCompleted = false;
-                IsUpdatingChunk = true;
-                JobHandle = ScheduleUpdateMeshPropertiesJob(JobHandle);
-            }
-            else if (NeedsUpdate)
-            {
-                // Debug.Log($"JobChunkBase: Complete UpdateMeshPropertiesJob({Name})");
-
-                this.NeedsUpdate = false;
-                IsUpdateMeshPropertiesJobCompleted = true;
                 CompleteUpdateMeshPropertiesJob();
                 IsUpdatingChunk = false;
+                this.NeedsUpdate = false;
             }
+        }
+
+        public bool TryScheduleUpdateMeshJob()
+        {
+            if (NeedsUpdate && !IsUpdatingChunk && CheckNeighbourChunks())
+            {
+                IsUpdatingChunk = true;
+                TryAddNeighbourDependencies();
+                AddDependencyToUpdateMeshJobHandle(InitJobHandle);
+                UpdateMeshJobHandle = ScheduleUpdateMeshPropertiesJob(UpdateMeshJobHandle);
+                return true;
+            }
+
+            return false;
+        }
+
+        protected virtual bool TryAddNeighbourDependencies()
+        {    
+            return TryAddNeighbourDependency(BoxFaceSide.Front) && TryAddNeighbourDependency(BoxFaceSide.Back) && TryAddNeighbourDependency(BoxFaceSide.Top) && TryAddNeighbourDependency(BoxFaceSide.Bottom) && TryAddNeighbourDependency(BoxFaceSide.Right) && TryAddNeighbourDependency(BoxFaceSide.Left);
+        }
+
+        protected virtual bool TryAddNeighbourDependency(BoxFaceSide side)
+        {
+            if ( _world.TryGetNeighbourChunk(this, side, out var chunk) && chunk is JobChunkBase jobChunk)
+            {
+                AddDependencyToUpdateMeshJobHandle(jobChunk.InitJobHandle);
+                return true;
+            }
+
+            return false;
+        }
+
+        protected virtual bool CheckNeighbourChunks()
+        {
+            return CheckNeighbourChunk(BoxFaceSide.Front) && CheckNeighbourChunk(BoxFaceSide.Back) && CheckNeighbourChunk(BoxFaceSide.Top) && CheckNeighbourChunk(BoxFaceSide.Bottom) && CheckNeighbourChunk(BoxFaceSide.Right) && CheckNeighbourChunk(BoxFaceSide.Left);
+        }
+
+        protected virtual bool CheckNeighbourChunk(BoxFaceSide side)
+        {
+            return _world.TryGetNeighbourChunk(this, side, out var chunk);
         }
 
         protected abstract NativeArray<float3> GetVertices(ref int startId, ref int count);
@@ -183,7 +224,20 @@ namespace UniVoxel.Core
 
         protected virtual void OnDisable()
         {
-            JobHandle.Complete();
+            InitJobHandle.Complete();
+            UpdateMeshJobHandle.Complete();
+        }
+
+        public virtual string GetDebugInfo()
+        {
+            var debugInfo = $"Debugging Chunk={Name}\n";
+            debugInfo += $"InitJobHandle.IsCompleted={InitJobHandle.IsCompleted}\n";
+            debugInfo += $"UpdateMeshJobHandle.IsCompleted={UpdateMeshJobHandle.IsCompleted}\n";
+            debugInfo += $"IsInitialized={IsInitialized.Value}\n";
+            debugInfo += $"NeedsUpdate={NeedsUpdate}\n";
+            debugInfo += $"IsUpdatingChunk={IsUpdatingChunk}\n";
+
+            return debugInfo;
         }
     }
 }

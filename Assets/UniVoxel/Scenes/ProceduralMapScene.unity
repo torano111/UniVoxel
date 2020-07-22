@@ -370,11 +370,12 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   _worldSettings: {fileID: 11400000, guid: d95632c6841fcdf4cb781ca95fff6255, type: 2}
-  _ranges: {x: 4, y: 1, z: 4}
-  _chunkPrefab: {fileID: 7664381087142774550, guid: d2bcbe0f5dac7c2438d2ea9f14db6cfc,
+  _ranges: {x: 2, y: 2, z: 2}
+  _chunkPrefab: {fileID: 3933833454263794029, guid: ef96c4eac76c40b4c861672db6fac3ee,
     type: 3}
   _playerTransform: {fileID: 161386478}
   _numChunksToSpawnInAFrame: 1
+  _spawnChunksProcedurally: 1
 --- !u!4 &1202046512
 Transform:
   m_ObjectHideFlags: 0

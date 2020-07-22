@@ -6,6 +6,7 @@ using UnityStandardAssets.Characters.FirstPerson;
 using System;
 using UniRx;
 using UniRx.Triggers;
+using Unity.Jobs;
 
 namespace UniVoxel.Core
 {
@@ -23,13 +24,22 @@ namespace UniVoxel.Core
         [SerializeField]
         Transform _playerTransform;
 
-        bool _isInitialized = false;
-
         Queue<ChunkBase> _chunksToReturn = new Queue<ChunkBase>();
         Queue<Vector3Int> _chunkPositionsToSpawn = new Queue<Vector3Int>();
+        Queue<ChunkBase> _chunksToSpawn = new Queue<ChunkBase>();
 
         [SerializeField]
         int _numChunksToSpawnInAFrame = 4;
+
+        [SerializeField]
+        bool _spawnChunksProcedurally = true;
+
+        JobHandle _initJobChunkDependencies;
+        JobHandle _updateJobChunkDependencies;
+
+        Vector3 _currentCenter;
+
+        public bool IsUpdatingChunks { get; private set; }
 
         void Start()
         {
@@ -47,11 +57,11 @@ namespace UniVoxel.Core
 
         void InitChunks()
         {
-            for (var y = 0; y <= 2 * _ranges.y; y++)
+            for (var y = 0; y <= Mathf.Max(0, 2 * _ranges.y); y++)
             {
-                for (var z = 0; z <= 2 * _ranges.z; z++)
+                for (var z = 0; z <= Mathf.Max(0, 2 * _ranges.z); z++)
                 {
-                    for (var x = 0; x <= 2 * _ranges.x; x++)
+                    for (var x = 0; x <= Mathf.Max(0, 2 * _ranges.x); x++)
                     {
                         // 0, -1, 1, -2, 2, ... -_ranges.x, _ranges.x
                         var posX = x == 0 ? x : (x % 2 == 1 ? -(x / 2 + 1) : x / 2);
@@ -66,7 +76,8 @@ namespace UniVoxel.Core
 
                         var cPos = GetChunkPositionAt(chunkWorldPos);
 
-                        InitChunk(cPos);
+                        var chunk = InitChunk(cPos);
+
                     }
                 }
             }
@@ -86,32 +97,60 @@ namespace UniVoxel.Core
             chunk.Initialize(this, ChunkSize, Extent, cPos);
             _chunks.Add(cPos, chunk);
 
+            if (chunk is JobChunkBase jobChunk)
+            {
+                jobChunk.MarkUpdate();
+            }
+
             return chunk;
+        }
+
+        void MarkUpdate(ChunkBase chunk)
+        {
+            if (chunk is JobChunkBase jobChunk)
+            {
+                var scheduled = jobChunk.TryScheduleUpdateMeshJob();
+
+                // if (!scheduled)
+                // {
+                //     Debug.LogWarning($"{chunk.Name} Not Scheduled");
+                // }
+            }
+            else
+            {
+                chunk.MarkUpdate();
+            }
         }
 
         IEnumerator BuildInitialChunks()
         {
+            yield return null;
+
+            _currentCenter = _playerTransform.position;
+
             // build chunk at from the player position to distant positions
-            for (var y = 0; y <= 2 * _ranges.y; y++)
+            // do not update chunks at edge, because a chunk needs all 6 neighbours.
+            for (var y = 0; y <= Mathf.Max(0, 2 * (_ranges.y - 1)); y++)
             {
-                for (var z = 0; z <= 2 * _ranges.z; z++)
+                for (var z = 0; z <= Mathf.Max(0, 2 * (_ranges.z - 1)); z++)
                 {
-                    for (var x = 0; x <= 2 * _ranges.x; x++)
+                    for (var x = 0; x <= Mathf.Max(0, 2 * (_ranges.x - 1)); x++)
                     {
-                        // 0, -1, 1, -2, 2, ... -_ranges.x, _ranges.x
+                        // 0, -1, 1, -2, 2, ... -_ranges.x + 1, _ranges.x - 1
                         var posX = x == 0 ? x : (x % 2 == 1 ? -(x / 2 + 1) : x / 2);
 
-                        // 0, -1, 1, -2, 2, ... -_ranges.z, _ranges.z
+                        // 0, -1, 1, -2, 2, ... -_ranges.z + 1, _ranges.z - 1
                         var posZ = z == 0 ? z : (z % 2 == 1 ? -(z / 2 + 1) : z / 2);
 
-                        // 0, -1, 1, -2, 2, ... -_ranges.y, _ranges.y
+                        // 0, -1, 1, -2, 2, ... -_ranges.y + 1, _ranges.y - 1
                         var posY = y == 0 ? y : (y % 2 == 1 ? -(y / 2 + 1) : y / 2);
 
-                        var chunkWorldPos = _playerTransform.position + new Vector3(posX, posY, posZ) * ChunkSize;
+                        var chunkWorldPos = _currentCenter + new Vector3(posX, posY, posZ) * ChunkSize;
                         var cPos = GetChunkPositionAt(chunkWorldPos);
                         if (_chunks.TryGetValue(cPos, out var chunk))
                         {
-                            chunk.MarkUpdate();
+                            MarkUpdate(chunk);
+
                             // wait for a frame
                             yield return null;
                         }
@@ -123,32 +162,32 @@ namespace UniVoxel.Core
                 }
             }
 
-            yield return null;
+            yield return new WaitForSeconds(1f);
 
             IsWorldInitialized = true;
-
-            _isInitialized = true;
         }
 
         void Update()
         {
-            if (!_isInitialized)
+            if (!IsWorldInitialized || !_spawnChunksProcedurally || IsUpdatingChunks)
             {
                 return;
             }
 
+            IsUpdatingChunks = true;
+            _currentCenter = _playerTransform.position;
             CheckActiveChunks();
             ReturnInactiveChunks();
-            SpawnChunksInRange();
+            StartCoroutine("SpawnChunksInRange");
         }
 
-        bool IsInRange(Vector3 chunkPos0, Vector3 chunkPos1)
+        bool IsInRange(Vector3 chunkPos0, Vector3 chunkPos1, Vector3Int ranges)
         {
             var diffX = Mathf.Abs(chunkPos0.x - chunkPos1.x);
             var diffY = Mathf.Abs(chunkPos0.y - chunkPos1.y);
             var diffZ = Mathf.Abs(chunkPos0.z - chunkPos1.z);
 
-            if (diffX > _ranges.x * ChunkSize || diffY > _ranges.y * ChunkSize || diffZ > _ranges.z * ChunkSize)
+            if (diffX > ranges.x * ChunkSize || diffY > ranges.y * ChunkSize || diffZ > ranges.z * ChunkSize)
             {
                 return false;
             }
@@ -160,10 +199,10 @@ namespace UniVoxel.Core
         {
             if (_chunksToReturn.Count == 0)
             {
-                var playerChunkPos = GetChunkPositionAt(_playerTransform.position);
+                var centerChunkPos = GetChunkPositionAt(_currentCenter);
                 foreach (var chunk in _chunks.Values)
                 {
-                    if (!IsInRange(playerChunkPos, chunk.Position))
+                    if (!IsInRange(centerChunkPos, chunk.Position, _ranges))
                     {
                         _chunksToReturn.Enqueue(chunk);
                     }
@@ -173,11 +212,11 @@ namespace UniVoxel.Core
 
             if (_chunkPositionsToSpawn.Count == 0)
             {
-                for (var y = 0; y <= 2 * _ranges.y; y++)
+                for (var y = 0; y <= Mathf.Max(0, 2 * _ranges.y); y++)
                 {
-                    for (var z = 0; z <= 2 * _ranges.z; z++)
+                    for (var z = 0; z <= Mathf.Max(0, 2 * _ranges.z); z++)
                     {
-                        for (var x = 0; x <= 2 * _ranges.x; x++)
+                        for (var x = 0; x <= Mathf.Max(0, 2 * _ranges.x); x++)
                         {
                             // 0, -1, 1, -2, 2, ... -_ranges.x, _ranges.x
                             var posX = x == 0 ? x : (x % 2 == 1 ? -(x / 2 + 1) : x / 2);
@@ -188,10 +227,10 @@ namespace UniVoxel.Core
                             // 0, -1, 1, -2, 2, ... -_ranges.y, _ranges.y
                             var posY = y == 0 ? y : (y % 2 == 1 ? -(y / 2 + 1) : y / 2);
 
-                            var chunkWorldPos = _playerTransform.position + new Vector3(posX, posY, posZ) * ChunkSize;
+                            var chunkWorldPos = _currentCenter + new Vector3(posX, posY, posZ) * ChunkSize;
                             var cPos = GetChunkPositionAt(chunkWorldPos);
 
-                            if (!_chunks.ContainsKey(cPos))
+                            if (!_chunks.TryGetValue(cPos, out var chunk) || chunk.NeedsUpdate)
                             {
                                 _chunkPositionsToSpawn.Enqueue(cPos);
                             }
@@ -210,27 +249,96 @@ namespace UniVoxel.Core
                 var chunk = _chunksToReturn.Dequeue();
 
                 _chunks.Remove(chunk.Position);
-                // Destroy(chunk.gameObject);
                 _chunkPool.Return(chunk);
             }
         }
 
-        void SpawnChunksInRange()
+        IEnumerator SpawnChunksInRange()
         {
-            var count = 0;
-            while (_chunkPositionsToSpawn.Count > 0 && count < _numChunksToSpawnInAFrame)
+            var centerChunkPos = GetChunkPositionAt(_currentCenter);
+
+            // first, initialize all chunks.
+            // also, determinese which chunk to update.
+            while (_chunkPositionsToSpawn.Count > 0)
             {
                 var cPos = _chunkPositionsToSpawn.Dequeue();
 
-                if (!_chunks.ContainsKey(cPos))
+                var chunk = InitChunk(cPos);
+
+                // do not update chunks at edge, because a chunk needs all 6 neighbours.
+                if (IsInRange(centerChunkPos, cPos, new Vector3Int(Mathf.Max(0, _ranges.x - 1), Mathf.Max(0, _ranges.y - 1), Mathf.Max(0, _ranges.z - 1))))
                 {
-                    var chunk = InitChunk(cPos);
-                    chunk.MarkUpdate();
+                    _chunksToSpawn.Enqueue(chunk);
+                }
+            }
+
+            yield return null;
+
+            // finally, start updating chunks.
+            // this updates a certain number(_numChunksToSpawnInAFrame) of chunks in a frame.
+            var count = 0;
+            while (_chunksToSpawn.Count > 0)
+            {
+                var chunk = _chunksToSpawn.Dequeue();
+
+                // Debug.Log($"Update Chunk={chunk.Name}");
+
+                try
+                {
+                    MarkUpdate(chunk);
+                }
+                catch (System.InvalidOperationException ex)
+                {
+                    var outputLog = "";
+                    outputLog = GetChunkAndNeighboursDebugInfo(chunk);
+                    outputLog += "\n" + ex.Message;
+                    Debug.LogAssertion(outputLog + ex.Message);
+                }
+
+                if (count < _numChunksToSpawnInAFrame)
+                {
                     count++;
+                }
+                else
+                {
+                    count = 0;
+                    yield return null;
                 }
             }
 
             // Debug.Log($"{count} chunks spawned");
+            IsUpdatingChunks = false;
+        }
+
+        public string GetChunkAndNeighboursDebugInfo(ChunkBase chunk)
+        {
+            var debugInfo = "";
+            if (chunk is JobChunkBase jobChunk)
+            {
+                debugInfo = jobChunk.GetDebugInfo();
+            }
+
+            foreach (BoxFaceSide side in System.Enum.GetValues(typeof(BoxFaceSide)))
+            {
+                debugInfo += $"\n({side.ToString()}) ";
+                if (TryGetNeighbourChunk(chunk, side, out var neighbourChunk))
+                {
+                    if (neighbourChunk is JobChunkBase neighbourJobChunk)
+                    {
+                        debugInfo += neighbourJobChunk.GetDebugInfo();
+                    }
+                    else
+                    {
+                        debugInfo += "Neighbour Chunk Found, but not JobChunkBase";
+                    }
+                }
+                else
+                {
+                    debugInfo += "Neighbour Chunk Not Found\n";
+                }
+            }
+
+            return debugInfo;
         }
     }
 }

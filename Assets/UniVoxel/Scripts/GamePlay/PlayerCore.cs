@@ -92,7 +92,7 @@ namespace UniVoxel.GamePlay
             }
             else
             {
-                Debug.LogAssertion("failed to spawn player");
+                Debug.LogWarning("failed to spawn player at the correct position");
             }
         }
     }

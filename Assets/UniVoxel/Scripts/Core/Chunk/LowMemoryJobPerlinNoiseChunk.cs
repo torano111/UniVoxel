@@ -35,6 +35,7 @@ namespace UniVoxel.Core
         protected SolidBlockQueueToListJob SolidBlockQueueToListJob;
         protected CalculateMeshFromSolidBlockListParallelJob CalculateMeshJob;
 
+        public NativeArray<Block> NativeBlocks;
 
         protected NativeArray<PerlinNoise2DData> NativeNoise2D;
         protected NativeArray<PerlinNoise3DData> NativeNoise3D;
@@ -55,6 +56,7 @@ namespace UniVoxel.Core
         protected NativeList<ushort> NativeTriangles;
 
         protected NativeList<float2> NativeUV;
+
 
         public Vector2 GetUVCoord00(BlockType blockType, BoxFaceSide side)
         {
@@ -86,7 +88,7 @@ namespace UniVoxel.Core
                 ChunkPosition = NativeChunkPosition,
                 Extent = NativeExtent,
                 ChunkSize = NativeChunkSize,
-                Blocks = new NativeArray<Block>(_blocks, Allocator.TempJob),
+                Blocks = NativeBlocks
             };
 
             dependency = InitBlocksJob.Schedule(_blocks.Length, 0, dependency);
@@ -102,15 +104,12 @@ namespace UniVoxel.Core
 
         protected virtual void DisposeOnCompleteInitializeBlocksJob()
         {
-            if (InitBlocksJob.Blocks.IsCreated)
-            {
-                // Debug.Log($"chunk({Name}): dispose blocks");
-                InitBlocksJob.Blocks.Dispose();
-            }
         }
 
         protected override void InitializePersistentNativeArrays()
         {
+            NativeBlocks = new NativeArray<Block>(_blocks, Allocator.Persistent);
+
             // NativeArrays used to initialize blocks
 
             NativeNoise2D = new NativeArray<PerlinNoise2DData>(1, Allocator.Persistent);
@@ -162,6 +161,11 @@ namespace UniVoxel.Core
 
         protected virtual void DisposePersistentNativeArrays()
         {
+            if (NativeBlocks.IsCreated)
+            {
+                NativeBlocks.Dispose();
+            }
+
             if (NativeNoise2D.IsCreated)
             {
                 NativeNoise2D.Dispose();
@@ -255,7 +259,7 @@ namespace UniVoxel.Core
                 ChunkPosition = NativeChunkPosition,
                 Extent = NativeExtent,
                 ChunkSize = NativeChunkSize,
-                Blocks = new NativeArray<Block>(_blocks, Allocator.TempJob),
+                Blocks = NativeBlocks,
                 SolidBlockQueue = NativeSolidBlockQueue.AsParallelWriter(),
             };
 
@@ -328,10 +332,7 @@ namespace UniVoxel.Core
 
         void DisposeOnCompleteUpdateMeshPropertiesJob()
         {
-            if (CalculateSolidBlocksJob.Blocks.IsCreated)
-            {
-                CalculateSolidBlocksJob.Blocks.Dispose();
-            }
+            
         }
 
         protected override NativeArray<float3> GetVertices(ref int startId, ref int count)

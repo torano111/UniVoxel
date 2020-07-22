@@ -68,20 +68,20 @@ namespace UniVoxel.Core
 
             neighbourChunk = c as IChunk;
 
-            return IsWorldInitialized && result;
+            // return IsWorldInitialized && result;
+            return result;
         }
 
         public virtual bool TryGetChunkAt(Vector3 worldPos, out ChunkBase chunk)
         {
-            var pos = GetChunkPositionAt(worldPos);
+            var cPos = GetChunkPositionAt(worldPos);
 
-            if (_chunks.TryGetValue(pos, out chunk))
-            {
-                // return true if the spedified chunk exists and world has been initialized
-                return IsWorldInitialized;
-            }
+            return TryGetChunk(cPos, out chunk);
+        }
 
-            return false;
+        public virtual bool TryGetChunk(Vector3Int chunkPos, out ChunkBase chunk)
+        {
+            return _chunks.TryGetValue(chunkPos, out chunk);
         }
 
         public virtual Vector3Int GetChunkPositionAt(Vector3 worldPos)

@@ -30,9 +30,11 @@ namespace UniVoxel.Core
         [SerializeField]
         Vector2 _textureAtlasLengths = new Vector2(256f, 256f);
 
-        protected CalculateBlocksParallelJob InitBlocksJob;
+        public CalculateBlocksParallelJob InitBlocksJob { get; protected set; }
 
-        protected CalculateMeshWithCounterParallelJob CalculateMeshJob;
+        public CalculateMeshWithCounterParallelJob CalculateMeshJob { get; protected set; }
+
+        public NativeArray<Block> NativeBlocks;
 
         protected NativeArray<PerlinNoise2DData> NativeNoise2D;
         protected NativeArray<PerlinNoise3DData> NativeNoise3D;
@@ -67,7 +69,7 @@ namespace UniVoxel.Core
             _meshRenderer.material = _material;
         }
 
-        protected override JobHandle ScheduleInitializeBlocksJob(JobHandle dependency = default)
+        protected override JobHandle ScheduleInitializeBlocksJob(JobHandle dependency)
         {
             // update chunk values
             NativeChunkPosition[0] = new int3(Position.x, Position.y, Position.z);
@@ -82,7 +84,7 @@ namespace UniVoxel.Core
                 ChunkPosition = NativeChunkPosition,
                 Extent = NativeExtent,
                 ChunkSize = NativeChunkSize,
-                Blocks = new NativeArray<Block>(_blocks, Allocator.TempJob),
+                Blocks = NativeBlocks,
             };
 
             dependency = InitBlocksJob.Schedule(_blocks.Length, 0, dependency);
@@ -98,15 +100,12 @@ namespace UniVoxel.Core
 
         protected virtual void DisposeOnCompleteInitializeBlocksJob()
         {
-            if (InitBlocksJob.Blocks.IsCreated)
-            {
-                // Debug.Log($"chunk({Name}): dispose blocks");
-                InitBlocksJob.Blocks.Dispose();
-            }
         }
 
         protected override void InitializePersistentNativeArrays()
         {
+            NativeBlocks = new NativeArray<Block>(_blocks, Allocator.Persistent);
+
             // NativeArrays used to initialize blocks
 
             NativeNoise2D = new NativeArray<PerlinNoise2DData>(1, Allocator.Persistent);
@@ -157,6 +156,11 @@ namespace UniVoxel.Core
 
         protected virtual void DisposePersistentNativeArrays()
         {
+            if (NativeBlocks.IsCreated)
+            {
+                NativeBlocks.Dispose();
+            }
+
             if (NativeNoise2D.IsCreated)
             {
                 NativeNoise2D.Dispose();
@@ -235,6 +239,26 @@ namespace UniVoxel.Core
             DisposeOnCompleteUpdateMeshPropertiesJob();
         }
 
+        JobPerlinNoiseChunk GetNeighbourChunk(BoxFaceSide side)
+        {
+            if (_world.TryGetNeighbourChunk(this, side, out var neighbourChunk) && neighbourChunk is JobPerlinNoiseChunk jobChunk)
+            {
+                return jobChunk;
+            }
+
+            throw new System.InvalidOperationException("No neighbour chunk found");
+        }
+
+        NativeArray<Block> GetNeighbourChunkBlocks(BoxFaceSide side)
+        {
+            if (_world.TryGetNeighbourChunk(this, side, out var neighbourChunk) && neighbourChunk is JobPerlinNoiseChunk pChunk)
+            {
+                return pChunk.NativeBlocks;
+            }
+
+            throw new System.InvalidOperationException("No neighbour chunk found");
+        }
+
         protected override JobHandle ScheduleUpdateMeshPropertiesJob(JobHandle dependency)
         {
             Counter.Count = 0;
@@ -247,7 +271,19 @@ namespace UniVoxel.Core
                 ChunkPosition = NativeChunkPosition,
                 Extent = NativeExtent,
                 ChunkSize = NativeChunkSize,
-                Blocks = new NativeArray<Block>(_blocks, Allocator.TempJob),
+                Blocks = NativeBlocks,
+                // FrontNeighbourBlocks = GetNeighbourChunkBlocks(BoxFaceSide.Front),
+                // BackNeighbourBlocks = GetNeighbourChunkBlocks(BoxFaceSide.Back),
+                // TopNeighbourBlocks = GetNeighbourChunkBlocks(BoxFaceSide.Top),
+                // BottomNeighbourBlocks = GetNeighbourChunkBlocks(BoxFaceSide.Bottom),
+                // RightNeighbourBlocks = GetNeighbourChunkBlocks(BoxFaceSide.Right),
+                // LeftNeighbourBlocks = GetNeighbourChunkBlocks(BoxFaceSide.Left),
+                FrontNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Front).InitBlocksJob.Blocks,
+                BackNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Back).InitBlocksJob.Blocks,
+                TopNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Top).InitBlocksJob.Blocks,
+                BottomNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Bottom).InitBlocksJob.Blocks,
+                RightNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Right).InitBlocksJob.Blocks,
+                LeftNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Left).InitBlocksJob.Blocks,
                 Counter = Counter,
                 Vertices = NativeVertices,
                 Triangles = NativeTriangles,
@@ -269,10 +305,6 @@ namespace UniVoxel.Core
 
         void DisposeOnCompleteUpdateMeshPropertiesJob()
         {
-            if (CalculateMeshJob.Blocks.IsCreated)
-            {
-                CalculateMeshJob.Blocks.Dispose();
-            }
         }
 
         protected override NativeArray<float3> GetVertices(ref int startId, ref int count)

@@ -39,6 +39,7 @@ namespace UniVoxel.Utility.Jobs
         [ReadOnly]
         public NativeArray<int3> ChunkSize;
 
+        [WriteOnly]
         public NativeArray<Block> Blocks;
 
         public void Execute(int index)
@@ -85,6 +86,24 @@ namespace UniVoxel.Utility.Jobs
 
         [ReadOnly]
         public NativeArray<Block> Blocks;
+
+        [ReadOnly]
+        public NativeArray<Block> FrontNeighbourBlocks;
+
+        [ReadOnly]
+        public NativeArray<Block> BackNeighbourBlocks;
+
+        [ReadOnly]
+        public NativeArray<Block> TopNeighbourBlocks;
+
+        [ReadOnly]
+        public NativeArray<Block> BottomNeighbourBlocks;
+
+        [ReadOnly]
+        public NativeArray<Block> RightNeighbourBlocks;
+
+        [ReadOnly]
+        public NativeArray<Block> LeftNeighbourBlocks;
 
         [WriteOnly]
         public NativeCounter.Concurrent Counter;
@@ -201,10 +220,65 @@ namespace UniVoxel.Utility.Jobs
                     }
                 }
 
-                var neighbourChunkPos = BlockUtility.GetNeighbourPosition(ChunkPosition[0].x, ChunkPosition[0].y, ChunkPosition[0].z, side, ChunkSize[0].x);
-                var bInfo = ChunkUtility.CalculateBlockInfo(neighbourBlockIndices, Noise2D[0], Noise3D[0], ChunkSize[0], Extent[0], new int3(neighbourChunkPos.x, neighbourChunkPos.y, neighbourChunkPos.z), UsePerlinNoise[0] != 0, UsePerlinNoise[1] != 0);
-                return bInfo.IsSolid;
+                return GetNeighbourChunkBlock(side, neighbourBlockIndices).IsValid;
+
+                // var neighbourChunkPos = BlockUtility.GetNeighbourPosition(ChunkPosition[0].x, ChunkPosition[0].y, ChunkPosition[0].z, side, ChunkSize[0].x);
+                // var bInfo = ChunkUtility.CalculateBlockInfo(neighbourBlockIndices, Noise2D[0], Noise3D[0], ChunkSize[0], Extent[0], new int3(neighbourChunkPos.x, neighbourChunkPos.y, neighbourChunkPos.z), UsePerlinNoise[0] != 0, UsePerlinNoise[1] != 0);
+                // return bInfo.IsSolid;
             }
+        }
+
+        Block GetNeighbourChunkBlock(BoxFaceSide side, int3 blockIndices)
+        {
+            return GetNeighbourChunkBlock(side, MathUtility.GetLinearIndexFrom3Points(blockIndices.x, blockIndices.y, blockIndices.z, ChunkSize[0].x, ChunkSize[0].z));
+        }
+
+        Block GetNeighbourChunkBlock(BoxFaceSide side, int index)
+        {
+            if (0 <= index)
+            {
+                switch (side)
+                {
+                    case BoxFaceSide.Front:
+                        if (FrontNeighbourBlocks.Length <= index)
+                        {
+                            break;
+                        }
+                        return FrontNeighbourBlocks[index];
+                    case BoxFaceSide.Back:
+                        if (BackNeighbourBlocks.Length <= index)
+                        {
+                            break;
+                        }
+                        return BackNeighbourBlocks[index];
+                    case BoxFaceSide.Top:
+                        if (TopNeighbourBlocks.Length <= index)
+                        {
+                            break;
+                        }
+                        return TopNeighbourBlocks[index];
+                    case BoxFaceSide.Bottom:
+                        if (BottomNeighbourBlocks.Length <= index)
+                        {
+                            break;
+                        }
+                        return BottomNeighbourBlocks[index];
+                    case BoxFaceSide.Right:
+                        if (RightNeighbourBlocks.Length <= index)
+                        {
+                            break;
+                        }
+                        return RightNeighbourBlocks[index];
+                    case BoxFaceSide.Left:
+                        if (LeftNeighbourBlocks.Length <= index)
+                        {
+                            break;
+                        }
+                        return LeftNeighbourBlocks[index];
+                }
+            }
+
+            return default(Block);
         }
 
         bool IsBlockInRange(int3 blockPos)
