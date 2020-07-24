@@ -107,6 +107,7 @@ namespace UniVoxel.Core
 
         void MarkUpdate(ChunkBase chunk)
         {
+            // chunk.MarkUpdate();
             if (chunk is JobChunkBase jobChunk)
             {
                 var scheduled = jobChunk.TryScheduleUpdateMeshJob();
@@ -149,7 +150,17 @@ namespace UniVoxel.Core
                         var cPos = GetChunkPositionAt(chunkWorldPos);
                         if (_chunks.TryGetValue(cPos, out var chunk))
                         {
-                            MarkUpdate(chunk);
+                            try
+                            {
+                                MarkUpdate(chunk);
+                            }
+                            catch (System.InvalidOperationException ex)
+                            {
+                                var outputLog = "Error from BuildInitialChunks()\n";
+                                outputLog = GetChunkAndNeighboursDebugInfo(chunk);
+                                outputLog += "\n" + ex.Message;
+                                Debug.LogAssertion(outputLog + ex.Message);
+                            }
 
                             // wait for a frame
                             yield return null;
@@ -289,7 +300,7 @@ namespace UniVoxel.Core
                 }
                 catch (System.InvalidOperationException ex)
                 {
-                    var outputLog = "";
+                    var outputLog = "Error from SpawnChunksInRange()\n";
                     outputLog = GetChunkAndNeighboursDebugInfo(chunk);
                     outputLog += "\n" + ex.Message;
                     Debug.LogAssertion(outputLog + ex.Message);

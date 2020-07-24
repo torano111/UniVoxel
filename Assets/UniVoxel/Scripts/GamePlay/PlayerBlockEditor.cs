@@ -83,7 +83,7 @@ namespace UniVoxel.GamePlay
                 });
         }
 
-        void MarkChunksUpToDate()
+        void MarkChunksUpdate()
         {
             var updateInfo = "PlayerBlockEditor: Update";
             while (_chunksToUpdate.Count > 0)
@@ -177,7 +177,7 @@ namespace UniVoxel.GamePlay
                 _chunksToUpdate.Enqueue(editInfo.Chunk);
 
                 CheckNeighboursToUpdate(editInfo);
-                MarkChunksUpToDate();
+                MarkChunksUpdate();
             }
         }
 
@@ -188,7 +188,7 @@ namespace UniVoxel.GamePlay
                 _chunksToUpdate.Enqueue(editInfo.Chunk);
 
                 CheckNeighboursToUpdate(editInfo);
-                MarkChunksUpToDate();
+                MarkChunksUpdate();
             }
         }
     }

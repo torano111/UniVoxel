@@ -60,13 +60,13 @@ namespace UniVoxel.Core
             base.Awake();
         }
 
-        public virtual bool TryGetNeighbourChunk(IChunk chunk, BoxFaceSide neighbourDirection, out IChunk neighbourChunk)
+        public virtual bool TryGetNeighbourChunk(ChunkBase chunk, BoxFaceSide neighbourDirection, out ChunkBase neighbourChunk)
         {
             var neighbourChunkPos = BlockUtility.GetNeighbourPosition(chunk.Position.x, chunk.Position.y, chunk.Position.z, neighbourDirection, ChunkSize);
 
             var result = _chunks.TryGetValue(neighbourChunkPos, out var c);
 
-            neighbourChunk = c as IChunk;
+            neighbourChunk = c;
 
             // return IsWorldInitialized && result;
             return result;

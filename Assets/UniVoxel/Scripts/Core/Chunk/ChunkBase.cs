@@ -7,14 +7,13 @@ using System;
 
 namespace UniVoxel.Core
 {
-    public abstract class ChunkBase : MonoBehaviour, IChunk
+    public abstract class ChunkBase : MonoBehaviour
     {
         public float Extent { get; protected set; }
         public Vector3Int Position { get; protected set; }
         public string Name { get => gameObject.name; set => gameObject.name = value; }
 
         public int Size { get; protected set; }
-        public int GetChunkSize() => Size;
 
         protected Block[] _blocks;
         protected WorldBase _world;
@@ -133,7 +132,7 @@ namespace UniVoxel.Core
                         // if the difference is negative(should be -1), then the actual position in the neighbour chunk is neighbour size - 1.
                         if (diff[axis] < 0)
                         {
-                            neighbourBlockIndices[axis] = neighbourChunk.GetChunkSize() - 1;
+                            neighbourBlockIndices[axis] = neighbourChunk.Size - 1;
                             break;
                         }
 

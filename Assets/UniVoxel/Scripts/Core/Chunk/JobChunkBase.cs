@@ -162,6 +162,7 @@ namespace UniVoxel.Core
                 CompleteInitializeBlocksJob();
             }
 
+            // if (NeedsUpdate)
             if (IsUpdatingChunk)
             {
                 CompleteUpdateMeshPropertiesJob();
@@ -170,14 +171,25 @@ namespace UniVoxel.Core
             }
         }
 
+        // public override void MarkUpdate()
+        // {
+        //     if (!NeedsUpdate && CheckNeighbourChunks())
+        //     {
+        //         TryAddNeighbourDependencies();
+        //         AddDependencyToUpdateMeshJobHandle(InitJobHandle);
+        //         UpdateMeshJobHandle = ScheduleUpdateMeshPropertiesJob(UpdateMeshJobHandle);
+        //         NeedsUpdate = true;
+        //     }
+        // }
+
         public bool TryScheduleUpdateMeshJob()
         {
             if (NeedsUpdate && !IsUpdatingChunk && CheckNeighbourChunks())
             {
-                IsUpdatingChunk = true;
                 TryAddNeighbourDependencies();
                 AddDependencyToUpdateMeshJobHandle(InitJobHandle);
                 UpdateMeshJobHandle = ScheduleUpdateMeshPropertiesJob(UpdateMeshJobHandle);
+                IsUpdatingChunk = true;
                 return true;
             }
 
@@ -185,13 +197,13 @@ namespace UniVoxel.Core
         }
 
         protected virtual bool TryAddNeighbourDependencies()
-        {    
+        {
             return TryAddNeighbourDependency(BoxFaceSide.Front) && TryAddNeighbourDependency(BoxFaceSide.Back) && TryAddNeighbourDependency(BoxFaceSide.Top) && TryAddNeighbourDependency(BoxFaceSide.Bottom) && TryAddNeighbourDependency(BoxFaceSide.Right) && TryAddNeighbourDependency(BoxFaceSide.Left);
         }
 
         protected virtual bool TryAddNeighbourDependency(BoxFaceSide side)
         {
-            if ( _world.TryGetNeighbourChunk(this, side, out var chunk) && chunk is JobChunkBase jobChunk)
+            if (_world.TryGetNeighbourChunk(this, side, out var chunk) && chunk is JobChunkBase jobChunk)
             {
                 AddDependencyToUpdateMeshJobHandle(jobChunk.InitJobHandle);
                 return true;
