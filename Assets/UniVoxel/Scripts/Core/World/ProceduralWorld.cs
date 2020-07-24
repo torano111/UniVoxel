@@ -29,7 +29,10 @@ namespace UniVoxel.Core
         Queue<ChunkBase> _chunksToSpawn = new Queue<ChunkBase>();
 
         [SerializeField]
-        int _numChunksToSpawnInAFrame = 4;
+        int _numChunksToInitializePerFrame = 4;
+
+        [SerializeField]
+        int _numChunksToSpawnPerAFrame = 4;
 
         [SerializeField]
         bool _spawnChunksProcedurally = true;
@@ -281,6 +284,7 @@ namespace UniVoxel.Core
 
             // first, initialize all chunks.
             // also, determinese which chunk to update.
+            var initCount = 0;
             while (_chunkPositionsToSpawn.Count > 0)
             {
                 var cPos = _chunkPositionsToSpawn.Dequeue();
@@ -291,6 +295,13 @@ namespace UniVoxel.Core
                 if (IsInRange(centerChunkPos, cPos, new Vector3Int(Mathf.Max(0, _ranges.x - 1), Mathf.Max(0, _ranges.y - 1), Mathf.Max(0, _ranges.z - 1))))
                 {
                     _chunksToSpawn.Enqueue(chunk);
+                }
+
+                initCount++;
+                if (_numChunksToInitializePerFrame <= initCount)
+                {
+                    initCount = 0;
+                    yield return null;
                 }
             }
 
@@ -317,11 +328,9 @@ namespace UniVoxel.Core
                     Debug.LogAssertion(outputLog + ex.Message);
                 }
 
-                if (spawnCount < _numChunksToSpawnInAFrame)
-                {
-                    spawnCount++;
-                }
-                else
+
+                spawnCount++;
+                if (_numChunksToSpawnPerAFrame <= spawnCount)
                 {
                     spawnCount = 0;
                     yield return null;
