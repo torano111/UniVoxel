@@ -18,11 +18,18 @@ namespace UniVoxel.Core
         protected Block[] _blocks;
         protected WorldBase _world;
 
-        bool _needsUpdate;
-        public bool NeedsUpdate { get => _needsUpdate && IsInitialized.Value; set => _needsUpdate = value; }
+        ReactiveProperty<bool> _isModifiedRP = new ReactiveProperty<bool>();
+        public IReadOnlyReactiveProperty<bool> IsModifiedRP => _isModifiedRP;
+        
+        /// <summary>
+        /// Are any of blocks modified?
+        /// </summary>
+        public bool IsModified { get => IsModifiedRP.Value; protected set => _isModifiedRP.Value = value; }
 
-        protected ReactiveProperty<bool> _isInitialized = new ReactiveProperty<bool>(false);
-        public IReadOnlyReactiveProperty<bool> IsInitialized => _isInitialized;
+        ReactiveProperty<bool> _isInitializedRP = new ReactiveProperty<bool>(false);
+        public IReadOnlyReactiveProperty<bool> IsInitializedRP => _isInitializedRP;
+
+        public bool IsInitialized { get => IsInitializedRP.Value; protected set => _isInitializedRP.Value = value; }
 
         ReactiveProperty<bool> _isUpdatingChunkRP = new ReactiveProperty<bool>(false);
         public IReadOnlyReactiveProperty<bool> IsUpdatingChunkRP { get => _isUpdatingChunkRP; }
@@ -38,7 +45,8 @@ namespace UniVoxel.Core
 
             this._blocks = new Block[Size * Size * Size];
 
-            _isInitialized.Value = true;
+            IsInitialized = true;
+            IsModified = true;
         }
 
         public virtual bool TryGetBlock(int x, int y, int z, out Block block)
@@ -55,7 +63,7 @@ namespace UniVoxel.Core
             return false;
         }
 
-        
+
         public virtual Vector3Int GetBlockIndicesAt(Vector3 worldPos)
         {
             worldPos -= Position;
@@ -65,7 +73,7 @@ namespace UniVoxel.Core
 
             return new Vector3Int(x, y, z);
         }
-        
+
         public bool IsBlockOnEdge(int x, int y, int z)
         {
             return x == 0 || x == Size - 1 || y == 0 || y == Size - 1 || z == 0 || z == Size - 1;
@@ -73,7 +81,7 @@ namespace UniVoxel.Core
 
         public virtual bool ContainBlock(int x, int y, int z)
         {
-            return IsInitialized.Value && _blocks != null && 0 <= x && x < Size && 0 <= y && y < Size && 0 <= z && z < Size;
+            return IsInitializedRP.Value && _blocks != null && 0 <= x && x < Size && 0 <= y && y < Size && 0 <= z && z < Size;
         }
 
         public virtual bool IsSolid(int x, int y, int z)
@@ -81,15 +89,22 @@ namespace UniVoxel.Core
             return TryGetBlock(x, y, z, out var block) && block.IsValid;
         }
 
-        public virtual bool GetNeedsUpdate()
+        public virtual bool TryUpdateChunk()
         {
-            return NeedsUpdate;
+            if (!IsUpdatingChunk && IsModified)
+            {
+                IsUpdatingChunk = true;
+                var result = TryUpdateChunkMesh();
+                IsModified = false;
+                IsUpdatingChunk = false;
+
+                return result;
+            }
+
+            return false;
         }
 
-        public virtual void MarkUpdate()
-        {
-            this.NeedsUpdate = true;
-        }
+        protected abstract bool TryUpdateChunkMesh();
 
         public virtual void SetBlock(int x, int y, int z, Block block)
         {
@@ -97,6 +112,7 @@ namespace UniVoxel.Core
             {
                 var index = MathUtility.GetLinearIndexFrom3Points(x, y, z, Size, Size);
                 _blocks[index] = block;
+                IsModified = true;
             }
             else
             {

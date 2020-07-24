@@ -89,7 +89,7 @@ namespace UniVoxel.GamePlay
             while (_chunksToUpdate.Count > 0)
             {
                 var chunk = _chunksToUpdate.Dequeue();
-                chunk.MarkUpdate();
+                // chunk.MarkModified();
 
                 updateInfo += $" {chunk.Name}";
             }

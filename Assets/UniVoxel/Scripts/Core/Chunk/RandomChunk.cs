@@ -44,14 +44,9 @@ namespace UniVoxel.Core
         void Start()
         {
             _meshRenderer.material = _material;
-            
-            // self initialization
-            // Initialize(null, _chunkSize, _extent, Vector3Int.zero);
-
-            InitBlocks();
         }
 
-        public void InitBlocks()
+        protected override void InitBlocks()
         {
             var blockTypes = System.Enum.GetValues(typeof(BlockType));
 
@@ -71,8 +66,6 @@ namespace UniVoxel.Core
                     }
                 }
             }
-
-            MarkUpdate();
         }
 
         protected override void UpdateMeshProperties()

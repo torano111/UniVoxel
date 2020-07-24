@@ -97,14 +97,7 @@ namespace UniVoxel.Core
             _meshRenderer.material = _material;
         }
 
-        public override void Initialize(WorldBase world, int chunkSize, float extent, Vector3Int position)
-        {
-            base.Initialize(world, chunkSize, extent, position);
-
-            InitBlocks();
-        }
-
-        void InitBlocks()
+        protected override void InitBlocks()
         {
             for (var x = 0; x < Size; x++)
             {

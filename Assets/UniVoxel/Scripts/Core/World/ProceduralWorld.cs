@@ -112,30 +112,36 @@ namespace UniVoxel.Core
             }
 
 
-            if (chunk is JobChunkBase jobChunk)
-            {
-                jobChunk.MarkUpdate();
-            }
+            // if (chunk is JobChunkBase jobChunk)
+            // {
+            //     jobChunk.MarkModified();
+            // }
 
             return chunk;
         }
 
         void MarkUpdate(ChunkBase chunk)
         {
-            // chunk.MarkUpdate();
-            if (chunk is JobChunkBase jobChunk)
-            {
-                var scheduled = jobChunk.TryScheduleUpdateMeshJob();
+            var updated = chunk.TryUpdateChunk();
 
-                // if (!scheduled)
-                // {
-                //     Debug.LogWarning($"{chunk.Name} Not Scheduled");
-                // }
-            }
-            else
-            {
-                chunk.MarkUpdate();
-            }
+            if (!updated)
+                {
+                    Debug.LogWarning($"{chunk.Name} could not be updated");
+                }
+
+            // if (chunk is JobChunkBase jobChunk)
+            // {
+            //     var scheduled = jobChunk.TryScheduleUpdateMeshJob();
+
+            //     // if (!scheduled)
+            //     // {
+            //     //     Debug.LogWarning($"{chunk.Name} Not Scheduled");
+            //     // }
+            // }
+            // else
+            // {
+            //     chunk.MarkModified();
+            // }
         }
 
         IEnumerator BuildInitialChunks()
@@ -259,7 +265,7 @@ namespace UniVoxel.Core
                             var chunkWorldPos = _currentCenter + new Vector3(posX, posY, posZ) * ChunkSize;
                             var cPos = GetChunkPositionAt(chunkWorldPos);
 
-                            if (!_chunks.TryGetValue(cPos, out var chunk) || chunk.NeedsUpdate)
+                            if (!_chunks.TryGetValue(cPos, out var chunk) || chunk.IsModified)
                             {
                                 _chunkPositionsToSpawn.Enqueue(cPos);
                             }

@@ -63,7 +63,7 @@ namespace UniVoxel.Core
                          OnComplete(chunk);
                      });
 
-                chunk.MarkUpdate();
+                // chunk.MarkModified();
                 yield return null;
             }
 

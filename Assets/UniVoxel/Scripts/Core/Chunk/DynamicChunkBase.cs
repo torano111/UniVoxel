@@ -69,6 +69,12 @@ namespace UniVoxel.Core
             _meshCollider.sharedMesh = this._mesh;
         }
 
+        protected override bool TryUpdateChunkMesh()
+        {
+            UpdateChunk();
+            return true;
+        }
+
         protected virtual void UpdateChunk(bool updatesCollider = true)
         {
             ClearMeshProperties();
@@ -85,16 +91,23 @@ namespace UniVoxel.Core
             IsUpdatingChunk = false;
         }
 
-        protected abstract void UpdateMeshProperties();
-
-        protected virtual void Update()
+        public override void Initialize(WorldBase world, int chunkSize, float extent, Vector3Int position)
         {
-            if (NeedsUpdate)
-            {
-                this.NeedsUpdate = false;
-                IsUpdatingChunk = true;
-                UpdateChunk(true);
-            }
+            this._world = world;
+            this.Size = chunkSize;
+            this.Extent = extent;
+            this.Position = position;
+
+            this._blocks = new Block[Size * Size * Size];
+
+            InitBlocks();
+            
+            IsInitialized = true;
+            IsModified = true;
         }
+
+        protected abstract void InitBlocks();
+
+        protected abstract void UpdateMeshProperties();
     }
 }

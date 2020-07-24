@@ -54,7 +54,7 @@ namespace UniVoxel.Core
 
         public override void Initialize(WorldBase world, int chunkSize, float extent, Vector3Int position)
         {
-            _isInitialized.Value = false;
+            IsInitialized = false;
 
             this._world = world;
             this.Size = chunkSize;
@@ -75,6 +75,8 @@ namespace UniVoxel.Core
             var addedDependencies = TryAddNeighbourDependencies(currentJobType);
             AddDependency(GetJobHandle(ChunkJobType.UpdateMesh), currentJobType);
             InitBlocksJobHandle = ScheduleInitializeBlocksJob(InitBlocksJobHandle);
+
+            IsModified = true;
         }
 
         protected virtual void InitializePersistentNativeArrays() { }
@@ -85,7 +87,7 @@ namespace UniVoxel.Core
         {
             InitBlocksJobHandle.Complete();
             OnCompleteInitializeBlocksJob();
-            _isInitialized.Value = true;
+            IsInitialized = true;
         }
 
         protected abstract void DisposeOnDestroy();
@@ -174,35 +176,36 @@ namespace UniVoxel.Core
 
         protected virtual void Update()
         {
-            if (!IsInitialized.Value)
+            if (!IsInitializedRP.Value)
             {
                 CompleteInitializeBlocksJob();
             }
 
-            // if (NeedsUpdate)
             if (IsUpdatingChunk)
             {
                 CompleteUpdateMeshPropertiesJob();
+                IsModified = false;
                 IsUpdatingChunk = false;
-                this.NeedsUpdate = false;
             }
         }
 
-        // public override void MarkUpdate()
-        // {
-        //     if (!NeedsUpdate && CheckNeighbourChunks())
-        //     {
-        //         TryAddNeighbourDependencies();
-        //         AddDependencyToJobHandle(InitJobHandle);
-        //         JobHandle = ScheduleUpdateMeshPropertiesJob(JobHandle);
-        //         NeedsUpdate = true;
-        //     }
-        // }
-
-        public bool TryScheduleUpdateMeshJob()
+        public override bool TryUpdateChunk()
         {
-            if (NeedsUpdate && !IsUpdatingChunk && CheckNeighbourChunks())
+            if (!IsUpdatingChunk && IsModified)
             {
+                IsUpdatingChunk = true;
+                var result = TryUpdateChunkMesh();
+                return result;
+            }
+
+            return false;
+        }
+
+        protected override bool TryUpdateChunkMesh()
+        {
+            if (CheckNeighbourChunks())
+            {
+
                 var currentJobType = ChunkJobType.UpdateMesh;
                 var addedDependencies = TryAddNeighbourDependencies(currentJobType);
 
@@ -214,7 +217,6 @@ namespace UniVoxel.Core
 
                 AddDependency(GetJobHandle(ChunkJobType.InitBlock), currentJobType);
                 UpdateMeshJobHandle = ScheduleUpdateMeshPropertiesJob(UpdateMeshJobHandle);
-                IsUpdatingChunk = true;
                 return true;
             }
 
@@ -265,7 +267,7 @@ namespace UniVoxel.Core
 
         protected virtual void OnEnable()
         {
-            this.NeedsUpdate = false;
+            IsModified = false;
             _meshRenderer.enabled = false;
         }
 
@@ -280,8 +282,8 @@ namespace UniVoxel.Core
             var debugInfo = $"Debugging Chunk={Name}\n";
             debugInfo += $"InitBlocksJobHandle.IsCompleted={InitBlocksJobHandle.IsCompleted}\n";
             debugInfo += $"UpdateMeshJobHandle.IsCompleted={UpdateMeshJobHandle.IsCompleted}\n";
-            debugInfo += $"IsInitialized={IsInitialized.Value}\n";
-            debugInfo += $"NeedsUpdate={NeedsUpdate}\n";
+            debugInfo += $"IsInitialized={IsInitializedRP.Value}\n";
+            debugInfo += $"IsModified={IsModified}\n";
             debugInfo += $"IsUpdatingChunk={IsUpdatingChunk}\n";
 
             return debugInfo;
