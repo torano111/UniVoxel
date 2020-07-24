@@ -370,7 +370,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   _worldSettings: {fileID: 11400000, guid: d95632c6841fcdf4cb781ca95fff6255, type: 2}
-  _ranges: {x: 2, y: 2, z: 2}
+  _ranges: {x: 5, y: 2, z: 5}
   _chunkPrefab: {fileID: 3933833454263794029, guid: ef96c4eac76c40b4c861672db6fac3ee,
     type: 3}
   _playerTransform: {fileID: 161386478}

@@ -54,11 +54,10 @@ namespace UniVoxel.Core
                     _chunkPool.Dispose();
                 });
 
-            InitChunks();
-            StartCoroutine("BuildInitialChunks");
+            StartCoroutine("InitChunks");
         }
 
-        void InitChunks()
+        IEnumerator InitChunks()
         {
             for (var y = 0; y <= Mathf.Max(0, 2 * _ranges.y); y++)
             {
@@ -80,10 +79,12 @@ namespace UniVoxel.Core
                         var cPos = GetChunkPositionAt(chunkWorldPos);
 
                         var chunk = InitChunk(cPos);
-
+                        yield return null;
                     }
                 }
             }
+
+            StartCoroutine("BuildInitialChunks");
         }
 
         ChunkBase InitChunk(Vector3Int cPos)
@@ -194,11 +195,14 @@ namespace UniVoxel.Core
 
         void Update()
         {
-            if (!IsWorldInitialized || !_spawnChunksProcedurally || IsUpdatingChunks)
+            if (IsWorldInitialized && _spawnChunksProcedurally && !IsUpdatingChunks)
             {
-                return;
+                UpdateChunks();
             }
+        }
 
+        void UpdateChunks()
+        {
             IsUpdatingChunks = true;
             _currentCenter = _playerTransform.position;
             CheckActiveChunks();
