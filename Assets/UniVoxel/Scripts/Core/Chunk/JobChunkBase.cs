@@ -15,6 +15,12 @@ namespace UniVoxel.Core
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
     public abstract class JobChunkBase : ChunkBase
     {
+        public enum ChunkJobType
+        {
+            InitBlock,
+            UpdateMesh,
+        }
+
         protected static BoxFaceSide[] FaceSides = new BoxFaceSide[] { BoxFaceSide.Front, BoxFaceSide.Back, BoxFaceSide.Top, BoxFaceSide.Bottom, BoxFaceSide.Right, BoxFaceSide.Left };
         protected MeshFilter _meshFilter;
         protected MeshRenderer _meshRenderer;
@@ -22,17 +28,26 @@ namespace UniVoxel.Core
 
         protected Mesh _mesh;
 
-        public JobHandle InitJobHandle { get; protected set; }
+        public JobHandle InitBlocksJobHandle { get; protected set; }
         public JobHandle UpdateMeshJobHandle { get; protected set; }
 
-        public void AddDependencyToInitJobHandle(JobHandle dependency)
+        public JobHandle GetJobHandle(ChunkJobType jobType)
         {
-            JobHandle.CombineDependencies(InitJobHandle, dependency);
+            switch (jobType)
+            {
+                case ChunkJobType.InitBlock:
+                    return InitBlocksJobHandle;
+                case ChunkJobType.UpdateMesh:
+                    return UpdateMeshJobHandle;
+                default:
+                    Debug.LogWarning($"{jobType.ToString()} not supported");
+                    return default(JobHandle);
+            }
         }
 
-        public void AddDependencyToUpdateMeshJobHandle(JobHandle dependency)
+        public void AddDependency(JobHandle dependency, ChunkJobType currentJobType)
         {
-            JobHandle.CombineDependencies(UpdateMeshJobHandle, dependency);
+            JobHandle.CombineDependencies(GetJobHandle(currentJobType), dependency);
         }
 
         protected bool IsUpdateMeshPropertiesJobCompleted = true;
@@ -56,8 +71,10 @@ namespace UniVoxel.Core
             }
 
             // Debug.Log($"chunk({Name}): schedule init blocks job");
-            AddDependencyToInitJobHandle(UpdateMeshJobHandle);
-            InitJobHandle = ScheduleInitializeBlocksJob(InitJobHandle);
+            var currentJobType = ChunkJobType.InitBlock;
+            var addedDependencies = TryAddNeighbourDependencies(currentJobType);
+            AddDependency(GetJobHandle(ChunkJobType.UpdateMesh), currentJobType);
+            InitBlocksJobHandle = ScheduleInitializeBlocksJob(InitBlocksJobHandle);
         }
 
         protected virtual void InitializePersistentNativeArrays() { }
@@ -66,7 +83,7 @@ namespace UniVoxel.Core
 
         protected virtual void CompleteInitializeBlocksJob()
         {
-            InitJobHandle.Complete();
+            InitBlocksJobHandle.Complete();
             OnCompleteInitializeBlocksJob();
             _isInitialized.Value = true;
         }
@@ -77,7 +94,7 @@ namespace UniVoxel.Core
 
         protected virtual void OnDestroy()
         {
-            InitJobHandle.Complete();
+            InitBlocksJobHandle.Complete();
             UpdateMeshJobHandle.Complete();
 
             DisposeOnDestroy();
@@ -176,8 +193,8 @@ namespace UniVoxel.Core
         //     if (!NeedsUpdate && CheckNeighbourChunks())
         //     {
         //         TryAddNeighbourDependencies();
-        //         AddDependencyToUpdateMeshJobHandle(InitJobHandle);
-        //         UpdateMeshJobHandle = ScheduleUpdateMeshPropertiesJob(UpdateMeshJobHandle);
+        //         AddDependencyToJobHandle(InitJobHandle);
+        //         JobHandle = ScheduleUpdateMeshPropertiesJob(JobHandle);
         //         NeedsUpdate = true;
         //     }
         // }
@@ -186,8 +203,16 @@ namespace UniVoxel.Core
         {
             if (NeedsUpdate && !IsUpdatingChunk && CheckNeighbourChunks())
             {
-                TryAddNeighbourDependencies();
-                AddDependencyToUpdateMeshJobHandle(InitJobHandle);
+                var currentJobType = ChunkJobType.UpdateMesh;
+                var addedDependencies = TryAddNeighbourDependencies(currentJobType);
+
+                if (!addedDependencies)
+                {
+                    Debug.LogAssertion($"chunk={Name} failed to add dependencies for the updating job");
+                    return false;
+                }
+
+                AddDependency(GetJobHandle(ChunkJobType.InitBlock), currentJobType);
                 UpdateMeshJobHandle = ScheduleUpdateMeshPropertiesJob(UpdateMeshJobHandle);
                 IsUpdatingChunk = true;
                 return true;
@@ -196,16 +221,26 @@ namespace UniVoxel.Core
             return false;
         }
 
-        protected virtual bool TryAddNeighbourDependencies()
+        protected virtual bool TryAddNeighbourDependencies(ChunkJobType currentJobType)
         {
-            return TryAddNeighbourDependency(BoxFaceSide.Front) && TryAddNeighbourDependency(BoxFaceSide.Back) && TryAddNeighbourDependency(BoxFaceSide.Top) && TryAddNeighbourDependency(BoxFaceSide.Bottom) && TryAddNeighbourDependency(BoxFaceSide.Right) && TryAddNeighbourDependency(BoxFaceSide.Left);
+            var result = true;
+            foreach (BoxFaceSide side in FaceSides)
+            {
+                if (!TryAddNeighbourDependency(side, currentJobType))
+                {
+                    result = false;
+                }
+            }
+
+            return result;
         }
 
-        protected virtual bool TryAddNeighbourDependency(BoxFaceSide side)
+        protected virtual bool TryAddNeighbourDependency(BoxFaceSide side, ChunkJobType currentJobType)
         {
             if (_world.TryGetNeighbourChunk(this, side, out var chunk) && chunk is JobChunkBase jobChunk)
             {
-                AddDependencyToUpdateMeshJobHandle(jobChunk.InitJobHandle);
+                var dependency = currentJobType == ChunkJobType.InitBlock ? jobChunk.GetJobHandle(ChunkJobType.UpdateMesh) : jobChunk.GetJobHandle(ChunkJobType.InitBlock);
+                AddDependency(dependency, currentJobType);
                 return true;
             }
 
@@ -236,14 +271,14 @@ namespace UniVoxel.Core
 
         protected virtual void OnDisable()
         {
-            InitJobHandle.Complete();
+            InitBlocksJobHandle.Complete();
             UpdateMeshJobHandle.Complete();
         }
 
         public virtual string GetDebugInfo()
         {
             var debugInfo = $"Debugging Chunk={Name}\n";
-            debugInfo += $"InitJobHandle.IsCompleted={InitJobHandle.IsCompleted}\n";
+            debugInfo += $"InitBlocksJobHandle.IsCompleted={InitBlocksJobHandle.IsCompleted}\n";
             debugInfo += $"UpdateMeshJobHandle.IsCompleted={UpdateMeshJobHandle.IsCompleted}\n";
             debugInfo += $"IsInitialized={IsInitialized.Value}\n";
             debugInfo += $"NeedsUpdate={NeedsUpdate}\n";

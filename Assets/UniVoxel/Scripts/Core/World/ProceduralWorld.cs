@@ -93,9 +93,20 @@ namespace UniVoxel.Core
             var chunk = _chunkPool.Rent();
             chunk.transform.position = cPos;
             chunk.name = $"Chunk_{cPos.x}_{cPos.y}_{cPos.z}";
-
-            chunk.Initialize(this, ChunkSize, Extent, cPos);
             _chunks.Add(cPos, chunk);
+
+            try
+            {
+                chunk.Initialize(this, ChunkSize, Extent, cPos);
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                var outputLog = "failed to initialized chunk\n";
+                outputLog += GetChunkAndNeighboursDebugInfo(chunk);
+                outputLog += "\n" + ex.Message;
+                Debug.LogAssertion(outputLog + ex.Message);
+            }
+
 
             if (chunk is JobChunkBase jobChunk)
             {
@@ -156,8 +167,8 @@ namespace UniVoxel.Core
                             }
                             catch (System.InvalidOperationException ex)
                             {
-                                var outputLog = "Error from BuildInitialChunks()\n";
-                                outputLog = GetChunkAndNeighboursDebugInfo(chunk);
+                                var outputLog = "failed to udpate chunk from BuildInitialChunks()\n";
+                                outputLog += GetChunkAndNeighboursDebugInfo(chunk);
                                 outputLog += "\n" + ex.Message;
                                 Debug.LogAssertion(outputLog + ex.Message);
                             }
@@ -188,7 +199,7 @@ namespace UniVoxel.Core
             IsUpdatingChunks = true;
             _currentCenter = _playerTransform.position;
             CheckActiveChunks();
-            ReturnInactiveChunks();
+            RemoveInactiveChunks();
             StartCoroutine("SpawnChunksInRange");
         }
 
@@ -253,7 +264,7 @@ namespace UniVoxel.Core
             // Debug.Log($"chunksToDestroy: {_chunksToDestroy.Count}, chunkPositionsToSpawn: {_chunkPositionsToSpawn.Count}");
         }
 
-        void ReturnInactiveChunks()
+        void RemoveInactiveChunks()
         {
             while (_chunksToReturn.Count > 0)
             {
@@ -287,7 +298,7 @@ namespace UniVoxel.Core
 
             // finally, start updating chunks.
             // this updates a certain number(_numChunksToSpawnInAFrame) of chunks in a frame.
-            var count = 0;
+            var spawnCount = 0;
             while (_chunksToSpawn.Count > 0)
             {
                 var chunk = _chunksToSpawn.Dequeue();
@@ -300,22 +311,24 @@ namespace UniVoxel.Core
                 }
                 catch (System.InvalidOperationException ex)
                 {
-                    var outputLog = "Error from SpawnChunksInRange()\n";
-                    outputLog = GetChunkAndNeighboursDebugInfo(chunk);
+                    var outputLog = "failed to udpate chunk from SpawnChunksInRange()\n";
+                    outputLog += GetChunkAndNeighboursDebugInfo(chunk);
                     outputLog += "\n" + ex.Message;
                     Debug.LogAssertion(outputLog + ex.Message);
                 }
 
-                if (count < _numChunksToSpawnInAFrame)
+                if (spawnCount < _numChunksToSpawnInAFrame)
                 {
-                    count++;
+                    spawnCount++;
                 }
                 else
                 {
-                    count = 0;
+                    spawnCount = 0;
                     yield return null;
                 }
             }
+
+            yield return null;
 
             // Debug.Log($"{count} chunks spawned");
             IsUpdatingChunks = false;
