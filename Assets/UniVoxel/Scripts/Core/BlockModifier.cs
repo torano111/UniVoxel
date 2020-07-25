@@ -60,7 +60,7 @@ namespace UniVoxel.Core
 
             if (TryGetBlock(worldPos, out var block))
             {
-                if (block.IsValid)
+                if (block.IsSolid)
                 {
                     editInfo = new BlockEditInfo();
                     Debug.LogWarning("Try adding a block but already existed.");
@@ -79,12 +79,12 @@ namespace UniVoxel.Core
         public bool TryRemoveBlock(Vector3 worldPos, out BlockEditInfo editInfo)
         {
             var airBlock = default(Block);
-            airBlock.IsValid = false;
+            airBlock.IsSolid = false;
 
             if (TryGetBlock(worldPos, out var block))
             {
 
-                if (!block.IsValid)
+                if (!block.IsSolid)
                 {
                     editInfo = new BlockEditInfo();
                     Debug.LogWarning("Try removing a block but already air.");

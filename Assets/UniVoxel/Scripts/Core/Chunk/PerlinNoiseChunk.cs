@@ -55,7 +55,7 @@ namespace UniVoxel.Core
 
         protected void UpdateChunkMesh(int x, int y, int z)
         {
-            if (TryGetBlock(x, y, z, out var block) && block.IsValid)
+            if (TryGetBlock(x, y, z, out var block) && block.IsSolid)
             {
                 var nonSolidNeighbourCount = 0;
                 var iterateCount = 0;
@@ -121,7 +121,7 @@ namespace UniVoxel.Core
 
             if (TryGetBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z, out var block))
             {
-                return block.IsValid;
+                return block.IsSolid;
             }
             else
             {

@@ -86,7 +86,7 @@ namespace UniVoxel.Core
 
         public virtual bool IsSolid(int x, int y, int z)
         {
-            return TryGetBlock(x, y, z, out var block) && block.IsValid;
+            return TryGetBlock(x, y, z, out var block) && block.IsSolid;
         }
 
         public virtual bool TryUpdateChunk()
@@ -134,7 +134,7 @@ namespace UniVoxel.Core
             if (TryGetBlock(neighbourBlockIndices.x, neighbourBlockIndices.y, neighbourBlockIndices.z, out var block))
             {
                 // not solid if the block is null
-                return block.IsValid;
+                return block.IsSolid;
             }
             // check the neighbour block in a neighbour chunk if this chunk doesn't contain neighbour
             else

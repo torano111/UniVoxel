@@ -26,12 +26,12 @@ namespace UniVoxel.Core
         public Block(BlockType blockType)
         {
             this.BlockType = blockType;
-            IsValid = true;
+            IsSolid = true;
         }
 
         public BlockType BlockType { get; set; }
 
         // false by default
-        public bool IsValid { get; set; }
+        public bool IsSolid { get; set; }
     }
 }

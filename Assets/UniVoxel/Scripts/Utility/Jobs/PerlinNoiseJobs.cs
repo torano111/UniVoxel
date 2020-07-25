@@ -47,7 +47,7 @@ namespace UniVoxel.Utility.Jobs
             var bInfo = ChunkUtility.CalculateBlockInfo(index, Noise2D[0], Noise3D[0], ChunkSize[0], Extent[0], ChunkPosition[0], UsePerlinNoise[0] != 0, UsePerlinNoise[1] != 0);
 
             var b = new Block(bInfo.BlockType);
-            b.IsValid = bInfo.IsSolid;
+            b.IsSolid = bInfo.IsSolid;
             Blocks[index] = b;
         }
     }
@@ -136,7 +136,7 @@ namespace UniVoxel.Utility.Jobs
         {
             var block = Blocks[index];
 
-            if (!block.IsValid)
+            if (!block.IsSolid)
             {
                 return;
             }
@@ -199,7 +199,7 @@ namespace UniVoxel.Utility.Jobs
             if (IsBlockInRange(neighbourBlockIndices))
             {
                 var neighbourBlock = Blocks[neighbourBlockLinearIndex];
-                return neighbourBlock.IsValid;
+                return neighbourBlock.IsSolid;
             }
             // if not, then calculate the noise of the virtual neighbour block
             else
@@ -220,7 +220,7 @@ namespace UniVoxel.Utility.Jobs
                     }
                 }
 
-                return GetNeighbourChunkBlock(side, neighbourBlockIndices).IsValid;
+                return GetNeighbourChunkBlock(side, neighbourBlockIndices).IsSolid;
 
                 // var neighbourChunkPos = BlockUtility.GetNeighbourPosition(ChunkPosition[0].x, ChunkPosition[0].y, ChunkPosition[0].z, side, ChunkSize[0].x);
                 // var bInfo = ChunkUtility.CalculateBlockInfo(neighbourBlockIndices, Noise2D[0], Noise3D[0], ChunkSize[0], Extent[0], new int3(neighbourChunkPos.x, neighbourChunkPos.y, neighbourChunkPos.z), UsePerlinNoise[0] != 0, UsePerlinNoise[1] != 0);
@@ -485,7 +485,7 @@ namespace UniVoxel.Utility.Jobs
         {
             var block = Blocks[index];
 
-            if (!block.IsValid)
+            if (!block.IsSolid)
             {
                 return;
             }
@@ -562,7 +562,7 @@ namespace UniVoxel.Utility.Jobs
             if (IsBlockInRange(neighbourBlockIndices))
             {
                 var neighbourBlock = Blocks[neighbourBlockLinearIndex];
-                return neighbourBlock.IsValid;
+                return neighbourBlock.IsSolid;
             }
             // if not, then calculate the noise of the virtual neighbour block
             else
