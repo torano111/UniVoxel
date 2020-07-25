@@ -10,7 +10,7 @@ namespace UniVoxel.Core
         public Vector3Int BlockIndices { get; set; }
     }
 
-    public class BlockEditor
+    public class BlockModifier
     {
         public LayerMask ChunkLayerMask { get; set; }
         protected WorldBase World => WorldBase.Instance;

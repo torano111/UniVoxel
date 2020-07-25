@@ -8,7 +8,7 @@ using UniRx.Triggers;
 namespace UniVoxel.GamePlay
 {
     [RequireComponent(typeof(PlayerCore))]
-    public class PlayerBlockEditor : MonoBehaviour
+    public class PlayerBlockModifier : MonoBehaviour
     {
         WorldBase World => WorldBase.Instance;
 
@@ -43,9 +43,9 @@ namespace UniVoxel.GamePlay
         public float MaxEditDistance { get => _maxEditDistance; set => _maxEditDistance = value; }
 
         PlayerCore _playerCore;
-        BlockEditor _blockEditor = new BlockEditor();
+        BlockModifier _blockModifier = new BlockModifier();
 
-        public bool CanEdit { get; set; }
+        public bool CanModify { get; set; }
 
         Queue<ChunkBase> _chunksToUpdate = new Queue<ChunkBase>();
 
@@ -54,14 +54,14 @@ namespace UniVoxel.GamePlay
         {
             _playerCore = GetComponent<PlayerCore>();
 
-            CanEdit = true;
+            CanModify = true;
         }
 
         void Start()
         {
             this.UpdateAsObservable()
                 .Where(_ => _playerCore.IsInitialized)
-                .Where(_ => CanEdit)
+                .Where(_ => CanModify)
                 .Where(_ => Input.GetMouseButtonDown(0))
                 .Subscribe(_ =>
                 {
@@ -99,7 +99,7 @@ namespace UniVoxel.GamePlay
 
         void EditBlock()
         {
-            _blockEditor.ChunkLayerMask = ChunkMask;
+            _blockModifier.ChunkLayerMask = ChunkMask;
 
             switch (EditMode)
             {
@@ -172,7 +172,7 @@ namespace UniVoxel.GamePlay
 
         void AddBlock()
         {
-            if (_blockEditor.RaycastAndAddBlock(_playerCore.PlayerCamera.transform.position, _playerCore.PlayerCamera.transform.forward, MaxEditDistance, BlockType, out var editInfo))
+            if (_blockModifier.RaycastAndAddBlock(_playerCore.PlayerCamera.transform.position, _playerCore.PlayerCamera.transform.forward, MaxEditDistance, BlockType, out var editInfo))
             {
                 _chunksToUpdate.Enqueue(editInfo.Chunk);
 
@@ -183,7 +183,7 @@ namespace UniVoxel.GamePlay
 
         void RemoveBlock()
         {
-            if (_blockEditor.RaycastAndRemoveBlock(_playerCore.PlayerCamera.transform.position, _playerCore.PlayerCamera.transform.forward, MaxEditDistance, out var editInfo))
+            if (_blockModifier.RaycastAndRemoveBlock(_playerCore.PlayerCamera.transform.position, _playerCore.PlayerCamera.transform.forward, MaxEditDistance, out var editInfo))
             {
                 _chunksToUpdate.Enqueue(editInfo.Chunk);
 
