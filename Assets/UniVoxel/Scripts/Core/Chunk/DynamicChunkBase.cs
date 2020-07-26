@@ -22,6 +22,28 @@ namespace UniVoxel.Core
         protected List<Vector3> _normals = new List<Vector3>();
         protected List<Vector4> _tangents = new List<Vector4>();
 
+        protected Block[] _blocks;
+
+        public override Block GetBlock(int index)
+        {
+            return _blocks[index];
+        }
+
+        public override void SetBlock(int index, Block block)
+        {
+            _blocks[index] = block;
+        }
+
+        public override bool BlocksExsist()
+        {
+            return _blocks != null;
+        }
+
+        public override int GetBlocksLength()
+        {
+            return _blocks.Length;
+        }
+
         protected virtual void Awake()
         {
             _meshFilter = GetComponent<MeshFilter>();
@@ -91,19 +113,10 @@ namespace UniVoxel.Core
             IsUpdatingChunk = false;
         }
 
-        public override void Initialize(WorldBase world, int chunkSize, float extent, Vector3Int position)
+        public override void AllocateBlocks(int size)
         {
-            this._world = world;
-            this.Size = chunkSize;
-            this.Extent = extent;
-            this.Position = position;
-
             this._blocks = new Block[Size * Size * Size];
-
             InitBlocks();
-            
-            IsInitialized = true;
-            IsModified = true;
         }
 
         protected abstract void InitBlocks();

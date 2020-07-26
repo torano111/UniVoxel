@@ -35,8 +35,6 @@ namespace UniVoxel.Core
         protected SolidBlockQueueToListJob SolidBlockQueueToListJob;
         protected CalculateMeshFromSolidBlockListParallelJob CalculateMeshJob;
 
-        public NativeArray<Block> NativeBlocks;
-
         protected NativeArray<PerlinNoise2DData> NativeNoise2D;
         protected NativeArray<PerlinNoise3DData> NativeNoise3D;
         protected NativeArray<int> NativeUsePerlinNoise;
@@ -91,14 +89,13 @@ namespace UniVoxel.Core
                 Blocks = NativeBlocks
             };
 
-            dependency = InitBlocksJob.Schedule(_blocks.Length, 0, dependency);
+            dependency = InitBlocksJob.Schedule(GetBlocksLength(), 0, dependency);
 
             return dependency;
         }
 
         protected override void OnCompleteInitializeBlocksJob()
         {
-            InitBlocksJob.Blocks.CopyTo(_blocks);
             DisposeOnCompleteInitializeBlocksJob();
         }
 
@@ -108,8 +105,6 @@ namespace UniVoxel.Core
 
         protected override void InitializePersistentNativeArrays()
         {
-            NativeBlocks = new NativeArray<Block>(_blocks, Allocator.Persistent);
-
             // NativeArrays used to initialize blocks
 
             NativeNoise2D = new NativeArray<PerlinNoise2DData>(1, Allocator.Persistent);
@@ -263,7 +258,7 @@ namespace UniVoxel.Core
                 SolidBlockQueue = NativeSolidBlockQueue.AsParallelWriter(),
             };
 
-            dependency = CalculateSolidBlocksJob.Schedule(_blocks.Length, 0, dependency);
+            dependency = CalculateSolidBlocksJob.Schedule(GetBlocksLength(), 0, dependency);
 
             SolidBlockQueueToListJob = new SolidBlockQueueToListJob()
             {

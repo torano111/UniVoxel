@@ -15,16 +15,17 @@ namespace UniVoxel.Core
 
         public int Size { get; protected set; }
 
-        protected Block[] _blocks;
         protected WorldBase _world;
 
         ReactiveProperty<bool> _isModifiedRP = new ReactiveProperty<bool>();
         public IReadOnlyReactiveProperty<bool> IsModifiedRP => _isModifiedRP;
-        
+
         /// <summary>
         /// Are any of blocks modified?
         /// </summary>
-        public bool IsModified { get => IsModifiedRP.Value; protected set => _isModifiedRP.Value = value; }
+        public bool IsModified { get => IsModifiedRP.Value; set => _isModifiedRP.Value = value; }
+
+        public virtual bool IsModifieable() => IsInitialized && !IsUpdatingChunk;
 
         ReactiveProperty<bool> _isInitializedRP = new ReactiveProperty<bool>(false);
         public IReadOnlyReactiveProperty<bool> IsInitializedRP => _isInitializedRP;
@@ -43,18 +44,25 @@ namespace UniVoxel.Core
             this.Extent = extent;
             this.Position = position;
 
-            this._blocks = new Block[Size * Size * Size];
+            AllocateBlocks(chunkSize);
 
             IsInitialized = true;
             IsModified = true;
         }
+
+        public abstract void AllocateBlocks(int size);
+
+        public abstract Block GetBlock(int index);
+        public abstract void SetBlock(int index, Block block);
+        public abstract bool BlocksExsist();
+        public abstract int GetBlocksLength();
 
         public virtual bool TryGetBlock(int x, int y, int z, out Block block)
         {
             if (ContainBlock(x, y, z))
             {
                 var index = MathUtility.GetLinearIndexFrom3Points(x, y, z, Size, Size);
-                block = _blocks[index];
+                block = GetBlock(index);
 
                 return true;
             }
@@ -81,7 +89,7 @@ namespace UniVoxel.Core
 
         public virtual bool ContainBlock(int x, int y, int z)
         {
-            return IsInitializedRP.Value && _blocks != null && 0 <= x && x < Size && 0 <= y && y < Size && 0 <= z && z < Size;
+            return IsInitializedRP.Value && BlocksExsist() && 0 <= x && x < Size && 0 <= y && y < Size && 0 <= z && z < Size;
         }
 
         public virtual bool IsSolid(int x, int y, int z)
@@ -111,7 +119,7 @@ namespace UniVoxel.Core
             if (ContainBlock(x, y, z))
             {
                 var index = MathUtility.GetLinearIndexFrom3Points(x, y, z, Size, Size);
-                _blocks[index] = block;
+                SetBlock(index, block);
                 IsModified = true;
             }
             else

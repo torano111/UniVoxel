@@ -21,6 +21,8 @@ namespace UniVoxel.Core
             UpdateMesh,
         }
 
+        public NativeArray<Block> NativeBlocks;
+
         protected static BoxFaceSide[] FaceSides = new BoxFaceSide[] { BoxFaceSide.Front, BoxFaceSide.Back, BoxFaceSide.Top, BoxFaceSide.Bottom, BoxFaceSide.Right, BoxFaceSide.Left };
         protected MeshFilter _meshFilter;
         protected MeshRenderer _meshRenderer;
@@ -50,7 +52,18 @@ namespace UniVoxel.Core
             JobHandle.CombineDependencies(GetJobHandle(currentJobType), dependency);
         }
 
-        protected bool IsUpdateMeshPropertiesJobCompleted = true;
+        public override bool IsModifieable()
+        {
+            var result = _meshRenderer.enabled && IsInitialized && !IsUpdatingChunk;
+
+            foreach (BoxFaceSide side in FaceSides)
+            {
+                result = result && _world.TryGetNeighbourChunk(this, side, out var chunk) && !chunk.IsUpdatingChunk;
+            }
+
+            return result;
+        }
+
 
         public override void Initialize(WorldBase world, int chunkSize, float extent, Vector3Int position)
         {
@@ -63,10 +76,10 @@ namespace UniVoxel.Core
 
             var blockslength = Size * Size * Size;
 
-            if (_blocks == null || _blocks.Length != blockslength)
+            if (BlocksExsist() || GetBlocksLength() != blockslength)
             {
-                this._blocks = new Block[blockslength];
                 DisposeOnDestroy();
+                AllocateBlocks(chunkSize);
                 InitializePersistentNativeArrays();
             }
 
@@ -77,6 +90,31 @@ namespace UniVoxel.Core
             InitBlocksJobHandle = ScheduleInitializeBlocksJob(InitBlocksJobHandle);
 
             IsModified = true;
+        }
+
+        public override void AllocateBlocks(int size)
+        {
+            NativeBlocks = new NativeArray<Block>(size * size * size, Allocator.Persistent);
+        }
+
+        public override Block GetBlock(int index)
+        {
+            return NativeBlocks[index];
+        }
+
+        public override void SetBlock(int index, Block block)
+        {
+            NativeBlocks[index] = block;
+        }
+
+        public override bool BlocksExsist()
+        {
+            return NativeBlocks != null && NativeBlocks.IsCreated;
+        }
+
+        public override int GetBlocksLength()
+        {
+            return NativeBlocks.Length;
         }
 
         protected virtual void InitializePersistentNativeArrays() { }

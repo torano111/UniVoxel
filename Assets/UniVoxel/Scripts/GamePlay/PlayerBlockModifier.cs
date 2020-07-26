@@ -74,22 +74,28 @@ namespace UniVoxel.GamePlay
                 {
                     if (EditMode == BlockEditMode.Add)
                     {
-                        EditMode = BlockEditMode.Remove;
+                        SetEditMode(BlockEditMode.Remove);
                     }
-                    else if (EditMode == BlockEditMode.Remove)
+                    else
                     {
-                        EditMode = BlockEditMode.Add;
+                        SetEditMode(BlockEditMode.Add);
                     }
                 });
         }
 
-        void MarkChunksUpdate()
+        public void SetEditMode(BlockEditMode mode)
         {
-            var updateInfo = "PlayerBlockEditor: Update";
+            EditMode = mode;
+            Debug.Log($"PlayerBlockModifier: EditMode={mode.ToString()}");
+        }
+
+        void NotifyNeighbourChunksModified()
+        {
+            var updateInfo = "PlayerBlockEditor: Modify";
             while (_chunksToUpdate.Count > 0)
             {
                 var chunk = _chunksToUpdate.Dequeue();
-                // chunk.MarkModified();
+                chunk.IsModified = true;
 
                 updateInfo += $" {chunk.Name}";
             }
@@ -175,9 +181,8 @@ namespace UniVoxel.GamePlay
             if (_blockModifier.RaycastAndAddBlock(_playerCore.PlayerCamera.transform.position, _playerCore.PlayerCamera.transform.forward, MaxEditDistance, BlockType, out var editInfo))
             {
                 _chunksToUpdate.Enqueue(editInfo.Chunk);
-
                 CheckNeighboursToUpdate(editInfo);
-                MarkChunksUpdate();
+                NotifyNeighbourChunksModified();
             }
         }
 
@@ -186,9 +191,8 @@ namespace UniVoxel.GamePlay
             if (_blockModifier.RaycastAndRemoveBlock(_playerCore.PlayerCamera.transform.position, _playerCore.PlayerCamera.transform.forward, MaxEditDistance, out var editInfo))
             {
                 _chunksToUpdate.Enqueue(editInfo.Chunk);
-
                 CheckNeighboursToUpdate(editInfo);
-                MarkChunksUpdate();
+                NotifyNeighbourChunksModified();
             }
         }
     }

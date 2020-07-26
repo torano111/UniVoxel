@@ -16,9 +16,9 @@ namespace UniVoxel.Core
         protected WorldBase World => WorldBase.Instance;
 
 
-        public bool TryGetBlock(Vector3 worldPos, out Block block)
+        public bool TryGetBlock(Vector3 worldPos, out ChunkBase chunk, out Block block)
         {
-            if (World.TryGetChunkAt(worldPos, out var chunk))
+            if (World.TryGetChunkAt(worldPos, out chunk))
             {
                 var blockPos = chunk.GetBlockIndicesAt(worldPos);
                 return chunk.TryGetBlock(blockPos.x, blockPos.y, blockPos.z, out block);
@@ -58,7 +58,7 @@ namespace UniVoxel.Core
         {
             var b = new Block(blockType);
 
-            if (TryGetBlock(worldPos, out var block))
+            if (TryGetBlock(worldPos, out var chunk, out var block) && CheckIsChunkModifiable(chunk))
             {
                 if (block.IsSolid)
                 {
@@ -81,7 +81,7 @@ namespace UniVoxel.Core
             var airBlock = default(Block);
             airBlock.IsSolid = false;
 
-            if (TryGetBlock(worldPos, out var block))
+            if (TryGetBlock(worldPos, out var chunk, out var block) && CheckIsChunkModifiable(chunk))
             {
 
                 if (!block.IsSolid)
@@ -99,6 +99,11 @@ namespace UniVoxel.Core
 
             editInfo = new BlockEditInfo();
             return false;
+        }
+
+        public bool CheckIsChunkModifiable(ChunkBase chunk)
+        {
+            return World.IsChunkModifiable(chunk);
         }
 
         public bool RaycastAndAddBlock(Vector3 origin, Vector3 direction, float maxDistance, BlockType blockType, out BlockEditInfo editInfo)

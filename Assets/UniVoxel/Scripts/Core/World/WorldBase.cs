@@ -164,6 +164,30 @@ namespace UniVoxel.Core
             blockIndices = default(Vector3Int);
             return false;
         }
+
+        public virtual bool IsChunkModifiable(ChunkBase chunk)
+        {
+            var cPos = chunk.Position;
+
+            var hasChunk = TryGetChunk(cPos, out var c);
+            if (hasChunk && c == chunk)
+            {
+                return IsWorldInitialized && chunk.IsModifieable();
+            }
+            else
+            {
+                if (hasChunk)
+                {
+                    Debug.LogWarning("Contains a chunk at chunk.Position, but the chunk is not the same as the given chunk.");
+                }
+                else
+                {
+                    Debug.LogWarning("Doesn't contain the given chunk.");
+                }
+            }
+
+            return false;
+        }
     }
 }
 

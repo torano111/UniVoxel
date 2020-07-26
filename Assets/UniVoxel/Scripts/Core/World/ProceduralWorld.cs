@@ -12,6 +12,12 @@ namespace UniVoxel.Core
 {
     public class ProceduralWorld : WorldBase
     {
+        public struct SpawnChunkInfo
+        {
+            public Vector3Int Position { get; set; }
+            public ChunkBase Chunk { get; set; }
+            public bool NeedsInitialize { get; set; }
+        }
 
         [SerializeField]
         Vector3Int _ranges = new Vector3Int(3, 1, 3);
@@ -25,7 +31,7 @@ namespace UniVoxel.Core
         Transform _playerTransform;
 
         Queue<ChunkBase> _chunksToReturn = new Queue<ChunkBase>();
-        Queue<Vector3Int> _chunkPositionsToSpawn = new Queue<Vector3Int>();
+        Queue<SpawnChunkInfo> _chunkInfosToSpawn = new Queue<SpawnChunkInfo>();
         Queue<ChunkBase> _chunksToSpawn = new Queue<ChunkBase>();
 
         [SerializeField]
@@ -111,12 +117,6 @@ namespace UniVoxel.Core
                 Debug.LogAssertion(outputLog + ex.Message);
             }
 
-
-            // if (chunk is JobChunkBase jobChunk)
-            // {
-            //     jobChunk.MarkModified();
-            // }
-
             return chunk;
         }
 
@@ -125,23 +125,9 @@ namespace UniVoxel.Core
             var updated = chunk.TryUpdateChunk();
 
             if (!updated)
-                {
-                    Debug.LogWarning($"{chunk.Name} could not be updated");
-                }
-
-            // if (chunk is JobChunkBase jobChunk)
-            // {
-            //     var scheduled = jobChunk.TryScheduleUpdateMeshJob();
-
-            //     // if (!scheduled)
-            //     // {
-            //     //     Debug.LogWarning($"{chunk.Name} Not Scheduled");
-            //     // }
-            // }
-            // else
-            // {
-            //     chunk.MarkModified();
-            // }
+            {
+                Debug.LogWarning($"{chunk.Name} could not be updated");
+            }
         }
 
         IEnumerator BuildInitialChunks()
@@ -245,7 +231,7 @@ namespace UniVoxel.Core
 
             }
 
-            if (_chunkPositionsToSpawn.Count == 0)
+            if (_chunkInfosToSpawn.Count == 0)
             {
                 for (var y = 0; y <= Mathf.Max(0, 2 * _ranges.y); y++)
                 {
@@ -265,9 +251,21 @@ namespace UniVoxel.Core
                             var chunkWorldPos = _currentCenter + new Vector3(posX, posY, posZ) * ChunkSize;
                             var cPos = GetChunkPositionAt(chunkWorldPos);
 
-                            if (!_chunks.TryGetValue(cPos, out var chunk) || chunk.IsModified)
+                            if (!_chunks.TryGetValue(cPos, out var chunk))
                             {
-                                _chunkPositionsToSpawn.Enqueue(cPos);
+                                var chunkInfo = new SpawnChunkInfo();
+                                chunkInfo.Position = cPos;
+                                chunkInfo.NeedsInitialize = true;
+                                chunkInfo.Chunk = null;
+                                _chunkInfosToSpawn.Enqueue(chunkInfo);
+                            }
+                            else if (chunk.IsModified)
+                            {
+                                var chunkInfo = new SpawnChunkInfo();
+                                chunkInfo.Position = cPos;
+                                chunkInfo.NeedsInitialize = false;
+                                chunkInfo.Chunk = chunk;
+                                _chunkInfosToSpawn.Enqueue(chunkInfo);
                             }
                         }
                     }
@@ -295,19 +293,22 @@ namespace UniVoxel.Core
             // first, initialize all chunks.
             // also, determinese which chunk to update.
             var initCount = 0;
-            while (_chunkPositionsToSpawn.Count > 0)
+            while (_chunkInfosToSpawn.Count > 0)
             {
-                var cPos = _chunkPositionsToSpawn.Dequeue();
+                var chunkInfo = _chunkInfosToSpawn.Dequeue();
 
-                var chunk = InitChunk(cPos);
-
-                // do not update chunks at edge, because a chunk needs all 6 neighbours.
-                if (IsInRange(centerChunkPos, cPos, new Vector3Int(Mathf.Max(0, _ranges.x - 1), Mathf.Max(0, _ranges.y - 1), Mathf.Max(0, _ranges.z - 1))))
+                if (chunkInfo.NeedsInitialize)
                 {
-                    _chunksToSpawn.Enqueue(chunk);
+                    chunkInfo.Chunk = InitChunk(chunkInfo.Position);
+                    initCount++;
                 }
 
-                initCount++;
+                // do not update chunks at edge, because a chunk needs all 6 neighbours.
+                if (IsInRange(centerChunkPos, chunkInfo.Position, new Vector3Int(Mathf.Max(0, _ranges.x - 1), Mathf.Max(0, _ranges.y - 1), Mathf.Max(0, _ranges.z - 1))))
+                {
+                    _chunksToSpawn.Enqueue(chunkInfo.Chunk);
+                }
+
                 if (_numChunksToInitializePerFrame <= initCount)
                 {
                     initCount = 0;
@@ -324,7 +325,7 @@ namespace UniVoxel.Core
             {
                 var chunk = _chunksToSpawn.Dequeue();
 
-                // Debug.Log($"Update Chunk={chunk.Name}");
+                Debug.Log($"Update Chunk={chunk.Name}");
 
                 try
                 {
