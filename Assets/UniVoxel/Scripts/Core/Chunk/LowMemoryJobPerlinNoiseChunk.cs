@@ -255,6 +255,12 @@ namespace UniVoxel.Core
                 Extent = NativeExtent,
                 ChunkSize = NativeChunkSize,
                 Blocks = NativeBlocks,
+                FrontNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Front).NativeBlocks,
+                BackNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Back).NativeBlocks,
+                TopNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Top).NativeBlocks,
+                BottomNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Bottom).NativeBlocks,
+                RightNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Right).NativeBlocks,
+                LeftNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Left).NativeBlocks,
                 SolidBlockQueue = NativeSolidBlockQueue.AsParallelWriter(),
             };
 

@@ -287,6 +287,16 @@ namespace UniVoxel.Core
             return false;
         }
 
+        protected JobChunkBase GetNeighbourChunk(BoxFaceSide side)
+        {
+            if (_world.TryGetNeighbourChunk(this, side, out var neighbourChunk) && neighbourChunk is JobChunkBase jobChunk)
+            {
+                return jobChunk;
+            }
+
+            throw new System.InvalidOperationException("No neighbour chunk found");
+        }
+
         protected virtual bool CheckNeighbourChunks()
         {
             return CheckNeighbourChunk(BoxFaceSide.Front) && CheckNeighbourChunk(BoxFaceSide.Back) && CheckNeighbourChunk(BoxFaceSide.Top) && CheckNeighbourChunk(BoxFaceSide.Bottom) && CheckNeighbourChunk(BoxFaceSide.Right) && CheckNeighbourChunk(BoxFaceSide.Left);

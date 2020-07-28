@@ -325,7 +325,7 @@ namespace UniVoxel.Core
             {
                 var chunk = _chunksToSpawn.Dequeue();
 
-                Debug.Log($"Update Chunk={chunk.Name}");
+                // Debug.Log($"Update Chunk={chunk.Name}");
 
                 try
                 {

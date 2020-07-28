@@ -234,26 +234,6 @@ namespace UniVoxel.Core
             DisposeOnCompleteUpdateMeshPropertiesJob();
         }
 
-        JobPerlinNoiseChunk GetNeighbourChunk(BoxFaceSide side)
-        {
-            if (_world.TryGetNeighbourChunk(this, side, out var neighbourChunk) && neighbourChunk is JobPerlinNoiseChunk jobChunk)
-            {
-                return jobChunk;
-            }
-
-            throw new System.InvalidOperationException("No neighbour chunk found");
-        }
-
-        NativeArray<Block> GetNeighbourChunkBlocks(BoxFaceSide side)
-        {
-            if (_world.TryGetNeighbourChunk(this, side, out var neighbourChunk) && neighbourChunk is JobPerlinNoiseChunk pChunk)
-            {
-                return pChunk.NativeBlocks;
-            }
-
-            throw new System.InvalidOperationException("No neighbour chunk found");
-        }
-
         protected override JobHandle ScheduleUpdateMeshPropertiesJob(JobHandle dependency)
         {
             Counter.Count = 0;
@@ -267,12 +247,12 @@ namespace UniVoxel.Core
                 Extent = NativeExtent,
                 ChunkSize = NativeChunkSize,
                 Blocks = NativeBlocks,
-                FrontNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Front).InitBlocksJob.Blocks,
-                BackNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Back).InitBlocksJob.Blocks,
-                TopNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Top).InitBlocksJob.Blocks,
-                BottomNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Bottom).InitBlocksJob.Blocks,
-                RightNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Right).InitBlocksJob.Blocks,
-                LeftNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Left).InitBlocksJob.Blocks,
+                FrontNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Front).NativeBlocks,
+                BackNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Back).NativeBlocks,
+                TopNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Top).NativeBlocks,
+                BottomNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Bottom).NativeBlocks,
+                RightNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Right).NativeBlocks,
+                LeftNeighbourBlocks = GetNeighbourChunk(BoxFaceSide.Left).NativeBlocks,
                 Counter = Counter,
                 Vertices = NativeVertices,
                 Triangles = NativeTriangles,
